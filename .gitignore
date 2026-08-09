@@ -1,0 +1,14 @@
+# LaTeX build products
+build/
+*.aux
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.pdf
+*.synctex.gz
+
+# Editor and operating-system files
+.DS_Store
+*~

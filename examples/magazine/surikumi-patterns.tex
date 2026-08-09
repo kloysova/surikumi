@@ -1,0 +1,69 @@
+\documentclass[lualatex,paper=b5j,fontsize=10pt]{jlreq}
+
+\usepackage[twocolumn=false,footer=false]{surikumi}
+
+\newcommand{\PatternSample}[3]{%
+  \par\noindent{\sffamily\bfseries #1}\par\smallskip
+  \begingroup
+    \MathMagazineSetup{
+      pattern=#2,
+      series-position=#3,
+      series={ベーシック演習},
+      title={数列の基礎},
+      author={数学編集部},
+      author-font=mincho,
+      author-position=right,
+      title-fill=black
+    }%
+    \MMTitleBanner
+  \endgroup
+  \par\vspace{4mm}%
+}
+
+\newcommand{\PatternVariant}[6]{%
+  \par\noindent{\sffamily\bfseries #1}\par\smallskip
+  \begingroup
+    \MathMagazineSetup{
+      pattern=#2,
+      series-position=#3,
+      series={講義／数 IIAIIB},
+      title={集合と論証},
+      author={数学編集部},
+      author-font=#4,
+      author-position=#5,
+      title-fill=#6
+    }%
+    \MMTitleBanner
+  \endgroup
+  \par\vspace{4mm}%
+}
+
+\begin{document}
+
+\begin{center}
+  {\sffamily\gtfamily\bfseries\LARGE 背景パターン見本}\par
+  \smallskip
+  {\small 12 patterns: scales / triangles / diamonds / chevrons / weave / \ldots}
+\end{center}
+\vspace{3mm}
+
+\PatternSample{1. scales（既定・鱗状）}{scales}{left}
+\PatternSample{2. triangles（三角形）}{triangles}{center}
+\PatternSample{3. diamonds（菱形）}{diamonds}{left}
+\PatternSample{4. chevrons（山形）}{chevrons}{center}
+
+\clearpage
+
+\PatternSample{5. weave（織り目）}{weave}{left}
+\PatternSample{6. hexagons（六角形）}{hexagons}{center}
+\PatternSample{7. pinwheels（風車）}{pinwheels}{left}
+\PatternSample{8. zigzags（ジグザグ）}{zigzags}{center}
+
+\clearpage
+
+\PatternSample{9. checker（市松）}{checker}{left}
+\PatternVariant{10. parquet（寄木線画）}{parquet}{center}{gothic}{center}{black}
+\PatternVariant{11. origami（折紙線画・白抜き題字）}{origami}{center}{mincho}{center}{white}
+\PatternVariant{12. ribbons（格子リボン）}{ribbons}{left}{gothic}{right}{black}
+
+\end{document}

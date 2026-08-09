@@ -1,0 +1,1762 @@
+% surikumi.sty
+% High-density Japanese mathematics typesetting for LuaLaTeX + jlreq.
+% Copyright (c) 2026 surikumi contributors
+% Released under the MIT License.
+\NeedsTeXFormat{LaTeX2e}[2022-06-01]
+\ProvidesPackage{surikumi}[2026/08/09 v1.0 Japanese mathematics layout]
+
+\RequirePackage{iftex}
+\ifLuaTeX\else
+  \PackageError{surikumi}
+    {This package requires LuaLaTeX}
+    {Compile with lualatex or latexmk in LuaLaTeX mode.}
+\fi
+
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{family=smag,prefix=smag@}
+\DeclareBoolOption[true]{layout}
+\DeclareBoolOption[true]{fonts}
+\DeclareBoolOption[true]{twocolumn}
+\DeclareBoolOption[true]{footer}
+\DeclareStringOption[8pt]{bodyfontsize}
+\DeclareStringOption[10.8pt]{bodyleading}
+\DeclareStringOption[compact]{density}
+\ProcessKeyvalOptions*
+
+\RequirePackage{luatexja-fontspec}
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+\RequirePackage{tikz}
+\usetikzlibrary{calc,patterns}
+\RequirePackage{amsmath,amssymb}
+
+% In this magazine style, display and inline summations use the same
+% text-style glyph.  Their ranges are always stacked above and below.
+\let\smag@originalsum\sum
+\newcommand{\smag@fixedsum}{%
+  \mathop{%
+    \mathchoice
+      {\textstyle\smag@originalsum}%
+      {\textstyle\smag@originalsum}%
+      {\scriptstyle\smag@originalsum}%
+      {\scriptscriptstyle\smag@originalsum}%
+  }\limits
+}
+\renewcommand{\sum}{\smag@fixedsum}
+
+\RequirePackage{enumitem}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{fancyhdr}
+\RequirePackage{etoolbox}
+\RequirePackage{contour}
+
+% A coordinated vertical-rhythm system.  Compact mode reduces ordinary
+% leading and the whitespace around mathematics together, while lineskip is
+% retained as a safety valve for unusually tall inline material.
+\newcommand{\smag@applyverticalrhythm}{%
+  \ifdefstring{\smag@density}{standard}{%
+    \setlength{\lineskip}{1pt}%
+    \setlength{\lineskiplimit}{0pt}%
+    \setlength{\abovedisplayskip}{.55\baselineskip}%
+    \setlength{\belowdisplayskip}{.55\baselineskip}%
+    \setlength{\abovedisplayshortskip}{.25\baselineskip}%
+    \setlength{\belowdisplayshortskip}{.35\baselineskip}%
+    \setlength{\jot}{3pt}%
+  }{%
+    \ifdefstring{\smag@density}{compact}{}{%
+      \PackageWarning{surikumi}%
+        {Unknown density '\smag@density'; using compact}%
+    }%
+    \setlength{\lineskip}{.7pt}%
+    \setlength{\lineskiplimit}{.2pt}%
+    \setlength{\abovedisplayskip}{.42\baselineskip}%
+    \setlength{\belowdisplayskip}{.42\baselineskip}%
+    \setlength{\abovedisplayshortskip}{.18\baselineskip}%
+    \setlength{\belowdisplayshortskip}{.26\baselineskip}%
+    \setlength{\jot}{.16\baselineskip}%
+  }%
+}
+
+\definecolor{SMink}{gray}{0.12}
+\definecolor{SMrule}{gray}{0.38}
+\definecolor{SMpale}{gray}{0.92}
+\definecolor{SMband}{gray}{0.84}
+\definecolor{SMpatternA}{gray}{0.70}
+\definecolor{SMpatternB}{gray}{0.56}
+\definecolor{SMcoverBlue}{HTML}{0757B5}
+\definecolor{SMcoverDeepBlue}{HTML}{003F91}
+\definecolor{SMcoverOrange}{HTML}{F06A21}
+\definecolor{SMcoverCyan}{HTML}{65C5E8}
+\definecolor{SMcoverViolet}{HTML}{5657A6}
+\definecolor{SMcoverLime}{HTML}{EAF3B0}
+\definecolor{SMcoverWarm}{HTML}{FFF4C7}
+
+\ifsmag@layout
+  \RequirePackage{geometry}
+  \geometry{
+    paperwidth=182mm,
+    paperheight=257mm,
+    top=14mm,
+    bottom=15mm,
+    inner=14mm,
+    outer=14mm,
+    headheight=5mm,
+    headsep=2mm,
+    footskip=8mm
+  }
+\fi
+
+\setlength{\columnsep}{8mm}
+\setlength{\columnseprule}{0pt}
+\raggedbottom
+
+% Dedicated display faces.  The title uses the heaviest Japanese Gothic
+% available, while the author credit uses a sturdy Mincho face.
+\newcommand{\SMTitleFont}{\sffamily\gtfamily\bfseries}
+\newcommand{\SMSeriesFont}{\sffamily\gtfamily\bfseries}
+\newcommand{\SMAuthorMinchoFont}{\rmfamily\mcfamily\bfseries}
+\newcommand{\SMAuthorGothicFont}{\sffamily\gtfamily\bfseries}
+\ifsmag@fonts
+  \IfFontExistsTF{Noto Serif CJK JP}{%
+    \setmainjfont[
+      BoldFont=Noto Serif CJK JP Bold,
+      YokoFeatures={JFM=jlreq}
+    ]{Noto Serif CJK JP}%
+  }{}
+  \IfFontExistsTF{Noto Sans CJK JP}{%
+    \setsansjfont[
+      BoldFont=Noto Sans CJK JP Bold,
+      YokoFeatures={JFM=jlreq}
+    ]{Noto Sans CJK JP}%
+  }{}
+  \IfFontExistsTF{Noto Sans CJK JP Black}{%
+    \newjfontfamily\SMTitleFontJP[
+      FakeSlant=.12,
+      YokoFeatures={JFM=jlreq}
+    ]{Noto Sans CJK JP Black}%
+    \newjfontfamily\SMSeriesFontJP[
+      YokoFeatures={JFM=jlreq}
+    ]{Noto Sans CJK JP Black}%
+    \renewcommand{\SMTitleFont}{\sffamily\SMTitleFontJP}%
+    \renewcommand{\SMSeriesFont}{\sffamily\SMSeriesFontJP}%
+  }{}
+  \IfFontExistsTF{Noto Serif CJK JP SemiBold}{%
+    \newjfontfamily\SMAuthorMinchoFontJP[
+      YokoFeatures={JFM=jlreq}
+    ]{Noto Serif CJK JP SemiBold}%
+    \renewcommand{\SMAuthorMinchoFont}{\rmfamily\SMAuthorMinchoFontJP}%
+  }{}
+  \IfFontExistsTF{TeX Gyre Termes}{\setmainfont{TeX Gyre Termes}}{}
+  \IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{}
+\fi
+
+% A deterministic geometric texture, deliberately generated in TeX so that
+% the title bar remains crisp at any output resolution.
+\pgfdeclarepatternformonly{SMtriangles}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{7mm}}%
+    \pgfpathclose
+    \pgfusepath{fill}%
+    \pgfpathmoveto{\pgfpoint{6mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{1mm}}%
+    \pgfpathclose
+    \pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{6mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{7mm}}%
+    \pgfpathclose
+    \pgfusepath{fill}%
+    \pgfpathmoveto{\pgfpoint{0mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{1mm}}%
+    \pgfpathclose
+    \pgfusepath{fill}%
+  }
+
+% Alternating lozenges: calm and fairly open.
+\pgfdeclarepatternformonly{SMdiamonds}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Interlocking V forms: stronger direction and movement.
+\pgfdeclarepatternformonly{SMchevrons}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{0mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Soft overlapping lenses, closest to the scale-like texture in the supplied
+% printed references.
+\pgfdeclarepatternformonly{SMscales}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathcurveto{\pgfpoint{3mm}{0mm}}
+      {\pgfpoint{6mm}{5mm}}{\pgfpoint{6mm}{8mm}}%
+    \pgfpathcurveto{\pgfpoint{3mm}{8mm}}
+      {\pgfpoint{0mm}{3mm}}{\pgfpoint{0mm}{0mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{6mm}{0mm}}%
+    \pgfpathcurveto{\pgfpoint{9mm}{0mm}}
+      {\pgfpoint{12mm}{5mm}}{\pgfpoint{12mm}{8mm}}%
+    \pgfpathcurveto{\pgfpoint{9mm}{8mm}}
+      {\pgfpoint{6mm}{3mm}}{\pgfpoint{6mm}{0mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Crossed diagonal strips: a denser woven texture.
+\pgfdeclarepatternformonly{SMweave}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{4mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{8mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{8mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{4mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Honeycomb cells.
+\pgfdeclarepatternformonly{SMhexagons}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{1.5mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{4.5mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{4.5mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{1.5mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{7.5mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{10.5mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{10.5mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{7.5mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Four rotating blades around the centre of each tile.
+\pgfdeclarepatternformonly{SMpinwheels}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{8mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{4mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{4mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Parallel angular waves.
+\pgfdeclarepatternformonly{SMzigzags}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{1mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{2mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{1mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{3mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{2mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{2mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{3mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{0mm}{5mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{5mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{7mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{6mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{3mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{7mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+% Offset rectangular tiles.
+\pgfdeclarepatternformonly{SMchecker}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathrectangle{\pgfpoint{0mm}{0mm}}{\pgfpoint{6mm}{4mm}}%
+    \pgfusepath{fill}%
+    \pgfpathrectangle{\pgfpoint{6mm}{4mm}}{\pgfpoint{6mm}{4mm}}%
+    \pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathrectangle{\pgfpoint{6mm}{0mm}}{\pgfpoint{6mm}{4mm}}%
+    \pgfusepath{fill}%
+    \pgfpathrectangle{\pgfpoint{0mm}{4mm}}{\pgfpoint{6mm}{4mm}}%
+    \pgfusepath{fill}%
+  }
+
+% Angular parquet linework, based on interlocking wooden strips.
+\pgfdeclarepatternformonly{SMparquet}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {%
+    \pgfsetlinewidth{.42pt}%
+    \pgfsetstrokecolor{SMrule}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{8mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{0mm}}%
+    \pgfpathmoveto{\pgfpoint{0mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{8mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{12mm}}%
+    \pgfpathmoveto{\pgfpoint{4mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{8mm}{3mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathmoveto{\pgfpoint{4mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{8mm}{9mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{12mm}}%
+    \pgfpathmoveto{\pgfpoint{0mm}{3mm}}%
+    \pgfpathlineto{\pgfpoint{4mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{9mm}}%
+    \pgfpathmoveto{\pgfpoint{16mm}{3mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{9mm}}%
+    \pgfusepath{stroke}%
+  }
+
+% Fine triangular facets: a light origami-like network.
+\pgfdeclarepatternformonly{SMorigami}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {%
+    \pgfsetlinewidth{.32pt}%
+    \pgfsetstrokecolor{SMrule}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{5mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{2mm}{12mm}}%
+    \pgfpathmoveto{\pgfpoint{5mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{11mm}{1mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{5mm}}%
+    \pgfpathmoveto{\pgfpoint{5mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{9mm}}%
+    \pgfpathlineto{\pgfpoint{2mm}{12mm}}%
+    \pgfpathmoveto{\pgfpoint{9mm}{9mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{5mm}}%
+    \pgfpathlineto{\pgfpoint{14mm}{12mm}}%
+    \pgfpathmoveto{\pgfpoint{11mm}{1mm}}%
+    \pgfpathlineto{\pgfpoint{9mm}{9mm}}%
+    \pgfusepath{stroke}%
+  }
+
+% Alternating broad ribbons with a clear diagonal rhythm.
+\pgfdeclarepatternformonly{SMribbons}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpatternA}%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{4mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{9mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{3mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+    \pgfsetfillcolor{SMpatternB}%
+    \pgfpathmoveto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{16mm}{3mm}}%
+    \pgfpathlineto{\pgfpoint{4mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{12mm}}%
+    \pgfpathlineto{\pgfpoint{0mm}{9mm}}%
+    \pgfpathclose\pgfusepath{fill}%
+  }
+
+\makeatletter
+\def\smag@feature{特集\quad 入試数学の要点をつかむ}
+\def\smag@series{講義／数学}
+\def\smag@title{数列の基礎}
+\def\smag@author{数学編集部}
+\def\smag@deck{}
+\def\smag@pattern{SMscales}
+\def\smag@seriesposition{center}
+\def\smag@titlefill{black}
+\def\smag@authorposition{right}
+\def\smag@authorfont{\SMAuthorMinchoFont}
+
+% Independent metadata for mock-exam and past-paper pages.
+\def\smag@mockname{数理組版模試}
+\def\smag@mockcourse{スタンダードコース}
+\def\smag@mockaudience{難関校志望者向け}
+\def\smag@mockdescriptionlabel{数理組版模試とは}
+\def\smag@mockdescription{}
+\def\smag@mocktimelabel{コースと試験時間}
+\def\smag@mocktime{}
+
+% Independent metadata for the monthly mathematics contest (学コン).
+\def\smag@contesttitle{数理組版・学力コンテスト}
+\def\smag@contestissue{2026年7月号}
+\def\smag@contestcourses{S・A・B}
+\def\smag@contestvolume{VOL. 70}
+\def\smag@contestdatecode{2026-07}
+\def\smag@contesttimes{SS，S，M，L}
+\def\smag@contestdeadline{7月31日（消印有効）}
+\def\smag@contestreturn{8月25日}
+
+% Independent metadata for an A4 proof sheet containing a centred JIS B5
+% cover.  The animal artwork stays external so a newly generated image can be
+% substituted for every issue without changing the cover construction.
+\def\smag@covermasthead{数理組版}
+\def\smag@coverpublicationnote{高校数学を深く学ぶ月刊誌}
+\def\smag@coverreleasenote{毎月20日発売}
+\def\smag@covermonth{7}
+\def\smag@coveryear{2026}
+\def\smag@coverfeaturelabel{特集}
+\def\smag@coverfeaturetitle{数学の見晴らしをひらく}
+\def\smag@coveranimalimage{}
+\def\smag@coveranimalx{46mm}
+\def\smag@coveranimaly{-6mm}
+\def\smag@coveranimalwidth{139mm}
+\def\smag@coveranimalopacity{.98}
+\def\smag@coverpublisher{数学編集室}
+\def\smag@covermainitems{}
+\def\smag@coversubitems{}
+
+\pgfkeys{
+  /surikumi/.is family,
+  /surikumi,
+  feature/.store in=\smag@feature,
+  series/.store in=\smag@series,
+  title/.store in=\smag@title,
+  author/.store in=\smag@author,
+  deck/.store in=\smag@deck,
+  pattern/.is choice,
+  pattern/scales/.code={\def\smag@pattern{SMscales}},
+  pattern/triangles/.code={\def\smag@pattern{SMtriangles}},
+  pattern/diamonds/.code={\def\smag@pattern{SMdiamonds}},
+  pattern/chevrons/.code={\def\smag@pattern{SMchevrons}},
+  pattern/weave/.code={\def\smag@pattern{SMweave}},
+  pattern/hexagons/.code={\def\smag@pattern{SMhexagons}},
+  pattern/pinwheels/.code={\def\smag@pattern{SMpinwheels}},
+  pattern/zigzags/.code={\def\smag@pattern{SMzigzags}},
+  pattern/checker/.code={\def\smag@pattern{SMchecker}},
+  pattern/parquet/.code={\def\smag@pattern{SMparquet}},
+  pattern/origami/.code={\def\smag@pattern{SMorigami}},
+  pattern/ribbons/.code={\def\smag@pattern{SMribbons}},
+  series-position/.is choice,
+  series-position/center/.code={\def\smag@seriesposition{center}},
+  series-position/left/.code={\def\smag@seriesposition{left}},
+  title-fill/.is choice,
+  title-fill/black/.code={\def\smag@titlefill{black}},
+  title-fill/white/.code={\def\smag@titlefill{white}},
+  author-position/.is choice,
+  author-position/right/.code={\def\smag@authorposition{right}},
+  author-position/center/.code={\def\smag@authorposition{center}},
+  author-font/.is choice,
+  author-font/mincho/.code={\def\smag@authorfont{\SMAuthorMinchoFont}},
+  author-font/gothic/.code={\def\smag@authorfont{\SMAuthorGothicFont}},
+}
+
+\pgfkeys{
+  /sugaku-contest/.is family,
+  /sugaku-contest,
+  title/.store in=\smag@contesttitle,
+  issue/.store in=\smag@contestissue,
+  courses/.store in=\smag@contestcourses,
+  volume/.store in=\smag@contestvolume,
+  date-code/.store in=\smag@contestdatecode,
+  answer-times/.store in=\smag@contesttimes,
+  deadline/.store in=\smag@contestdeadline,
+  return-date/.store in=\smag@contestreturn,
+}
+
+\pgfkeys{
+  /sugaku-cover/.is family,
+  /sugaku-cover,
+  masthead/.store in=\smag@covermasthead,
+  publication-note/.store in=\smag@coverpublicationnote,
+  release-note/.store in=\smag@coverreleasenote,
+  month/.store in=\smag@covermonth,
+  year/.store in=\smag@coveryear,
+  feature-label/.store in=\smag@coverfeaturelabel,
+  feature-title/.store in=\smag@coverfeaturetitle,
+  animal-image/.store in=\smag@coveranimalimage,
+  animal-x/.store in=\smag@coveranimalx,
+  animal-y/.store in=\smag@coveranimaly,
+  animal-width/.store in=\smag@coveranimalwidth,
+  animal-opacity/.store in=\smag@coveranimalopacity,
+  publisher/.store in=\smag@coverpublisher,
+}
+
+\pgfkeys{
+  /sugaku-mock/.is family,
+  /sugaku-mock,
+  name/.store in=\smag@mockname,
+  course/.store in=\smag@mockcourse,
+  audience/.store in=\smag@mockaudience,
+  description-label/.store in=\smag@mockdescriptionlabel,
+  description/.store in=\smag@mockdescription,
+  time-label/.store in=\smag@mocktimelabel,
+  time/.store in=\smag@mocktime,
+}
+
+% Metadata for the next full-width article title.
+% Set feature={} to suppress the feature pill completely.
+\NewDocumentCommand{\MathMagazineSetup}{m}{%
+  \pgfkeys{/surikumi,#1}%
+}
+
+% Metadata for the dedicated mock-exam / past-paper opening.
+\NewDocumentCommand{\MathMockSetup}{m}{%
+  \pgfkeys{/sugaku-mock,#1}%
+}
+
+% Metadata for contest problem sheets, return forms, and information pages.
+\NewDocumentCommand{\MathContestSetup}{m}{%
+  \pgfkeys{/sugaku-contest,#1}%
+}
+
+% Metadata and article lists for the A4/B5 cut-down cover sheet.
+\NewDocumentCommand{\MathCoverSetup}{m}{%
+  \pgfkeys{/sugaku-cover,#1}%
+}
+
+\NewDocumentCommand{\MMCoverClearItems}{}{%
+  \gdef\smag@covermainitems{}%
+  \gdef\smag@coversubitems{}%
+}
+
+\NewDocumentCommand{\MMCoverMainItem}{m m}{%
+  \gappto\smag@covermainitems{\smag@covermainline{#1}{#2}}%
+}
+
+\NewDocumentCommand{\MMCoverSubItem}{m m}{%
+  \gappto\smag@coversubitems{\smag@coversubline{#1}{#2}}%
+}
+
+\newcommand{\smag@banner}{%
+    \begin{tikzpicture}
+      \path[use as bounding box] (0,0) rectangle (\textwidth,31mm);
+      \path[fill=SMband] (0,0) rectangle (\textwidth,31mm);
+      \path[pattern=\smag@pattern] (0,0) rectangle (\textwidth,31mm);
+      \fill[white,opacity=.13] (0,0) rectangle (\textwidth,31mm);
+      \ifdefstring{\smag@seriesposition}{left}{%
+        \node[
+          anchor=north west,
+          text=SMink,
+          inner sep=0pt,
+          font=\SMSeriesFont\fontsize{14.5}{17}\selectfont
+        ] at (6mm,29.2mm) {\begingroup\contourlength{.55pt}%
+          \contour{white}{\textcolor{SMink}{\smag@series}}\endgroup};
+      }{%
+        \node[
+          anchor=north,
+          text=SMink,
+          inner sep=0pt,
+          font=\SMSeriesFont\fontsize{11.5}{14}\selectfont
+        ] at (0.5\textwidth,28.5mm) {\begingroup\contourlength{.5pt}%
+          \contour{white}{\textcolor{SMink}{\smag@series}}\endgroup};
+      }%
+      \node[
+        align=center,
+        text=SMink,
+        inner sep=0pt,
+        font=\SMTitleFont\fontsize{25}{28}\selectfont
+      ] at (0.5\textwidth,15.4mm) {\begingroup\contourlength{.85pt}%
+        \ifdefstring{\smag@titlefill}{white}{%
+          \contour{SMink}{\textcolor{white}{\smag@title}}%
+        }{%
+          \contour{white}{\textcolor{SMink}{\smag@title}}%
+        }\endgroup};
+      \ifdefstring{\smag@authorposition}{center}{%
+        \node[
+          anchor=south,
+          text=SMink,
+          inner sep=0pt,
+          font=\smag@authorfont\fontsize{11.5}{13.5}\selectfont
+        ] at (0.5\textwidth,1.8mm) {\begingroup\contourlength{.55pt}%
+          \contour{white}{\textcolor{SMink}{\smag@author}}\endgroup};
+      }{%
+        \node[
+          anchor=south east,
+          text=SMink,
+          inner sep=0pt,
+          font=\smag@authorfont\fontsize{11}{13}\selectfont
+        ] at ($(\textwidth,0)+(-4mm,1.8mm)$) {\begingroup\contourlength{.55pt}%
+          \contour{white}{\textcolor{SMink}{\smag@author}}\endgroup};
+      }%
+    \end{tikzpicture}%
+}
+
+% Public banner-only command, useful for pattern samples and custom article
+% openings that do not need the feature pill or introductory deck.
+\NewDocumentCommand{\MMTitleBanner}{}{\noindent\smag@banner}
+
+\newcommand{\smag@titleblock}{%
+  \begin{minipage}{\textwidth}
+    \centering
+    \ifdefempty{\smag@feature}{}{%
+      \begin{tikzpicture}[baseline]
+        \node[
+          draw=SMrule,
+          line width=.45pt,
+          rounded corners=5pt,
+          fill=white,
+          text=SMink,
+          inner xsep=9pt,
+          inner ysep=2.5pt,
+          font=\sffamily\gtfamily\bfseries\small
+        ] {\smag@feature};
+      \end{tikzpicture}\par
+      \vspace{1.2mm}%
+    }%
+    \smag@banner\par
+    \ifdefempty{\smag@deck}{}{%
+      \vspace{2.2mm}
+      \hfill
+      \begin{minipage}{.53\textwidth}
+        \normalfont\rmfamily\mcfamily
+        \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
+        \color{SMink}%
+        \raisebox{.15ex}{\tiny$\blacktriangleright$}\,
+        \smag@deck
+      \end{minipage}%
+    }
+    \vspace{4mm}
+  \end{minipage}%
+}
+
+% Print a full-width title and enter (or restart) the standard two-column
+% output routine. It ends the preceding article itself; do not place a
+% redundant \clearpage immediately before this command.
+\NewDocumentCommand{\MakeMathMagazineTitle}{}{%
+  \ifsmag@twocolumn
+    % A fresh \twocolumn[...] works directly at the beginning of a document.
+    % For later articles, briefly leave the active two-column output routine;
+    % otherwise LaTeX positions the optional full-width box above the top edge.
+    \if@twocolumn
+      \onecolumn
+    \fi
+    \twocolumn[\smag@titleblock]%
+  \else
+    \smag@titleblock
+  \fi
+  \thispagestyle{sugakumagazine}%
+}
+
+% Side ornament used by the mock-exam banner.  It is intentionally drawn as
+% vector linework rather than embedded artwork, so it remains sharp in print.
+\newcommand{\smag@mocklefttower}{%
+  \draw[draw=SMrule,line width=.65pt] (0,0) rectangle (15mm,38mm);
+  \draw[draw=SMrule,line width=.45pt] (2mm,1.5mm) rectangle (13mm,11.5mm);
+  \draw[draw=SMrule,line width=.45pt] (2mm,13.25mm) rectangle (13mm,23.25mm);
+  \draw[draw=SMrule,line width=.45pt] (2mm,25mm) rectangle (13mm,36.5mm);
+  \draw[draw=SMrule,line width=.55pt] (2mm,1.5mm)--(13mm,11.5mm);
+  \draw[draw=SMrule,line width=.55pt] (2mm,13.25mm)--(13mm,23.25mm);
+  \draw[draw=SMrule,line width=.55pt] (2mm,25mm)--(13mm,36.5mm);
+  \draw[draw=SMpatternB,line width=1.7pt] (3.3mm,1.5mm)--(13mm,10.3mm);
+  \draw[draw=SMpatternB,line width=1.7pt] (3.3mm,13.25mm)--(13mm,22.05mm);
+  \draw[draw=SMpatternB,line width=1.7pt] (3.3mm,25mm)--(13mm,35.3mm);
+}
+
+\newcommand{\smag@mockbanner}{%
+  \begin{tikzpicture}
+    \path[use as bounding box] (0,0) rectangle (\textwidth,38mm);
+    \fill[white] (0,0) rectangle (\textwidth,38mm);
+    \fill[SMpatternA]
+      (15mm,31.7mm) rectangle ($(\textwidth,31.7mm)+(-15mm,2.5mm)$);
+    \draw[draw=SMrule,line width=.65pt] (0,38mm)--(\textwidth,38mm);
+    \draw[draw=SMrule,line width=.45pt]
+      (15mm,36.2mm)--($(\textwidth,36.2mm)+(-15mm,0)$);
+    \draw[draw=SMrule,line width=.55pt]
+      (15mm,34.2mm)--(20mm,29.2mm)--($(\textwidth,29.2mm)+(-20mm,0)$)
+      --($(\textwidth,34.2mm)+(-15mm,0)$);
+    \smag@mocklefttower
+    \begin{scope}[xshift=\textwidth]
+      \draw[draw=SMrule,line width=.65pt] (-15mm,0) rectangle (0,38mm);
+      \draw[draw=SMrule,line width=.45pt] (-13mm,1.5mm) rectangle (-2mm,11.5mm);
+      \draw[draw=SMrule,line width=.45pt] (-13mm,13.25mm) rectangle (-2mm,23.25mm);
+      \draw[draw=SMrule,line width=.45pt] (-13mm,25mm) rectangle (-2mm,36.5mm);
+      \draw[draw=SMrule,line width=.55pt] (-2mm,1.5mm)--(-13mm,11.5mm);
+      \draw[draw=SMrule,line width=.55pt] (-2mm,13.25mm)--(-13mm,23.25mm);
+      \draw[draw=SMrule,line width=.55pt] (-2mm,25mm)--(-13mm,36.5mm);
+      \draw[draw=SMpatternB,line width=1.7pt] (-3.3mm,1.5mm)--(-13mm,10.3mm);
+      \draw[draw=SMpatternB,line width=1.7pt] (-3.3mm,13.25mm)--(-13mm,22.05mm);
+      \draw[draw=SMpatternB,line width=1.7pt] (-3.3mm,25mm)--(-13mm,35.3mm);
+    \end{scope}
+    \node[
+      align=center,
+      text=SMink,
+      inner sep=0pt,
+      font=\SMSeriesFont\fontsize{14}{16}\selectfont
+    ] at (0.5\textwidth,33.2mm) {\begingroup\contourlength{.6pt}%
+      \contour{white}{\textcolor{SMink}{\smag@mockname}}\endgroup};
+    \node[
+      align=center,
+      text=SMink,
+      inner sep=0pt,
+      font=\SMSeriesFont\fontsize{29}{32}\selectfont
+    ] at (0.5\textwidth,19mm) {\smag@mockcourse};
+    \ifdefempty{\smag@mockaudience}{}{%
+      \node[
+        align=center,
+        text=SMink,
+        inner sep=0pt,
+        font=\sffamily\gtfamily\bfseries\fontsize{11.5}{13.5}\selectfont
+      ] at (0.5\textwidth,6.1mm) {\smag@mockaudience};
+    }%
+  \end{tikzpicture}%
+}
+
+\newcommand{\smag@mockmeta}{%
+  \begingroup
+    \normalfont\rmfamily\mcfamily
+    \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
+    \ifdefempty{\smag@mockdescription}{}{%
+      \noindent\raisebox{.05ex}{\sffamily\gtfamily\bfseries ♠}%
+      {\sffamily\gtfamily\bfseries\smag@mockdescriptionlabel：}\enspace
+      \smag@mockdescription\par
+    }%
+    \ifdefempty{\smag@mocktime}{}{%
+      \noindent\raisebox{.05ex}{\sffamily\gtfamily\bfseries ♥}%
+      {\sffamily\gtfamily\bfseries\smag@mocktimelabel：}\enspace
+      \smag@mocktime\par
+    }%
+  \endgroup
+}
+
+% Banner only, for custom page construction.
+\NewDocumentCommand{\MMMockBanner}{}{\noindent\smag@mockbanner}
+
+% Switches an active two-column article back to one column and starts the
+% dedicated mock-exam/past-paper page.
+\NewDocumentCommand{\MakeMathMockTitle}{}{%
+  \if@twocolumn
+    \onecolumn
+  \fi
+  \thispagestyle{sugakumagazine}%
+  \noindent\smag@mockbanner\par
+  \vspace{3mm}%
+  \smag@mockmeta
+  \vspace{3.5mm}%
+}
+
+% --- Monthly mathematics contest (学コン) -------------------------------
+
+% Evaluation strip printed above every contest problem.
+\newcommand{\smag@contestassessment}[1]{%
+  \noindent\hfill
+  \begin{tikzpicture}[x=1mm,y=1mm,baseline=(current bounding box.south)]
+    \path[use as bounding box] (0,0) rectangle (110,8.5);
+    \draw[draw=SMink,line width=.6pt] (0,0) rectangle (110,8.5);
+    \foreach \x in {14,38,50,62,74,87,99}{%
+      \draw[draw=SMink,line width=.45pt] (\x,0)--(\x,8.5);%
+    }%
+    \node[font=\sffamily\gtfamily\bfseries\fontsize{7}{8}\selectfont]
+      at (7,4.25) {解答時間};
+    \node[font=\normalfont\mcfamily\fontsize{7.3}{8}\selectfont]
+      at (26,4.25) {#1};
+    \node[font=\sffamily\gtfamily\bfseries\fontsize{7}{8}\selectfont]
+      at (44,4.25) {得点};
+    \node[anchor=east,font=\normalfont\mcfamily\fontsize{7}{8}\selectfont]
+      at (60.5,4.25) {点};
+    \node[font=\sffamily\gtfamily\bfseries\fontsize{7}{8}\selectfont]
+      at (68,4.25) {着眼};
+    \node[font=\sffamily\gtfamily\bfseries\fontsize{7}{8}\selectfont]
+      at (93,4.25) {大筋};
+  \end{tikzpicture}\par
+}
+
+\NewDocumentCommand{\MMContestAssessment}{O{}}{%
+  \def\smag@contestcurrenttimes{#1}%
+  \ifstrempty{#1}{\def\smag@contestcurrenttimes{\smag@contesttimes}}{}%
+  \smag@contestassessment{\smag@contestcurrenttimes}%
+}
+
+% Each problem begins on a fresh one-column page after the first one.  The
+% rest of the page is intentionally left available for handwritten work.
+\newcounter{mmcontestproblem}
+\NewDocumentEnvironment{mmcontestproblem}{O{} m}{%
+  \if@twocolumn
+    \onecolumn
+  \else
+    \ifnum\value{mmcontestproblem}>0\clearpage\fi
+  \fi
+  \refstepcounter{mmcontestproblem}%
+  \thispagestyle{sugakumagazine}%
+  \MMContestAssessment[#1]%
+  \vspace{4mm}%
+  \noindent
+  \begin{minipage}[t]{3em}
+    \vspace{0pt}%
+    {\sffamily\gtfamily\bfseries\fontsize{13}{15}\selectfont #2.}%
+  \end{minipage}%
+  \begin{minipage}[t]{\dimexpr\linewidth-3em\relax}
+    \vspace{0pt}\normalfont\rmfamily\mcfamily\ignorespaces
+}{%
+  \end{minipage}\par
+}
+
+\NewDocumentCommand{\MMContestPostalBoxes}{}{%
+  \tikz[baseline=-.55ex,x=1mm,y=1mm]{%
+    \foreach \i in {0,...,6}{%
+      \draw[draw=SMink,line width=.45pt] ({6*\i},0) rectangle ++(5,6);%
+    }%
+  }%
+}
+
+\NewDocumentCommand{\MMContestRuledLines}{m}{%
+  \par
+  \foreach \i in {1,...,#1}{%
+    \noindent{\color{SMrule}\makebox[\linewidth]{\dotfill}}\par
+    \vspace{1.8mm}%
+  }%
+}
+
+\NewDocumentCommand{\MMContestCutRule}{O{切り取り線}}{%
+  \par\vspace{1.5mm}
+  \noindent
+  \begin{tikzpicture}[baseline]
+    \node[rotate=90,anchor=south,font=\sffamily\gtfamily\fontsize{6}{7}\selectfont]
+      at (1.2mm,0) {#1};
+    \draw[draw=SMrule,densely dotted,line width=.4pt]
+      (4mm,0)--(\dimexpr\linewidth-4mm\relax,0);
+  \end{tikzpicture}\par
+  \vspace{1.5mm}%
+}
+
+\NewDocumentCommand{\MMContestCellLabel}{m}{%
+  {\sffamily\gtfamily\bfseries #1}%
+}
+
+% Submission / critique sheet.  Optional content is appended to the rules.
+\NewDocumentCommand{\MakeMathContestAnswerSheet}{O{}}{%
+  \if@twocolumn\onecolumn\else\clearpage\fi
+  \thispagestyle{sugakumagazine}%
+  \begin{tikzpicture}[remember picture,overlay]
+    \draw[draw=SMrule,densely dotted,line width=.4pt]
+      ($(current page.north west)+(9mm,-7mm)$)--
+      ($(current page.south west)+(9mm,7mm)$);
+  \end{tikzpicture}%
+  \begingroup
+  \fontsize{7.2}{10.2}\selectfont
+  \setlength{\tabcolsep}{3pt}%
+  \begin{center}
+    \begin{tabular}{r@{\hspace{3mm}}l}
+      \MMContestCellLabel{郵便番号} & \MMContestPostalBoxes \\[2mm]
+      \MMContestCellLabel{住所} &
+        \begin{tikzpicture}[baseline=(current bounding box.center)]
+          \draw[draw=SMrule,line width=.45pt] (0,0) rectangle (98mm,12mm);
+          \draw[draw=SMrule,line width=.3pt] (0,6mm)--(98mm,6mm);
+        \end{tikzpicture} \\[2.2mm]
+      \MMContestCellLabel{氏名} & \makebox[98mm][l]{\hrulefill\hspace{2mm}様}
+    \end{tabular}
+  \end{center}
+  \vspace{5mm}
+  \noindent
+  {\sffamily\gtfamily\bfseries\fontsize{9.5}{11}\selectfont
+    \smag@contesttitle}
+  \hfill
+  {（\smag@contestissue）\quad\smag@contestcourses}\par
+  \vspace{1mm}\hrule height .45pt
+  \vspace{1.8mm}
+  \noindent{\sffamily\gtfamily\bfseries 講評}\par
+  \MMContestRuledLines{4}
+  \vspace{.5mm}
+  \renewcommand{\arraystretch}{1.75}%
+  \noindent\begin{tabular}{|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|}
+    \hline
+    \MMContestCellLabel{得点} & & \MMContestCellLabel{席次} & &
+      \MMContestCellLabel{評価} & & \MMContestCellLabel{指名} & \\
+    \hline
+  \end{tabular}\par
+  \MMContestCutRule
+  \renewcommand{\arraystretch}{1.55}%
+  \noindent\begin{tabular}{|p{13mm}|p{20.5mm}|p{20.5mm}|p{20.5mm}|p{20.5mm}|p{20.5mm}|p{20.5mm}|}
+    \hline
+      & \makebox[\linewidth][c]{1} & \makebox[\linewidth][c]{2} &
+      \makebox[\linewidth][c]{3} & \makebox[\linewidth][c]{4} &
+      \makebox[\linewidth][c]{5} & \makebox[\linewidth][c]{6} \\
+    \hline
+    \MMContestCellLabel{得点} & \makebox[\linewidth][c]{\phantom{00}点} &
+      \makebox[\linewidth][c]{\phantom{00}点} & \makebox[\linewidth][c]{\phantom{00}点} &
+      \makebox[\linewidth][c]{\phantom{00}点} & \makebox[\linewidth][c]{\phantom{00}点} &
+      \makebox[\linewidth][c]{\phantom{00}点} \\
+    \hline
+  \end{tabular}\par
+  \vspace{1mm}
+  \noindent\begin{tabular}{|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|p{12mm}|p{21.5mm}|}
+    \hline
+    \MMContestCellLabel{得点} & & \MMContestCellLabel{席次} & &
+      \MMContestCellLabel{番号} & & \MMContestCellLabel{備考} & \\
+    \hline
+  \end{tabular}\par
+  \vspace{1.5mm}
+  \noindent{\sffamily\gtfamily\bfseries 学力コンテスト応募規定}\par
+  \vspace{.5mm}
+  {\fontsize{6.1}{8}\selectfont
+    答案は指定されたコースから1問を選び，読みやすい文字で作成してください．
+    氏名・住所・コースを記入し，この用紙を切り取って答案に添付します．
+    締切は\smag@contestdeadline，答案返送予定日は\smag@contestreturn です．
+    添削結果，得点，席次および講評は返送する答案に記載します．
+    応募答案は問題文を写さず，解答と必要な図だけをまとめてください．
+    #1\par}
+  \endgroup
+}
+
+\NewDocumentCommand{\MMContestInfoSection}{m m}{%
+  \par\addvspace{1.2mm}
+  \noindent{\sffamily\gtfamily\bfseries #1}\hfill
+  \raisebox{.5ex}{\rule{.18\linewidth}{.35pt}}\par
+  \vspace{.6mm}#2\par
+}
+
+% Editorial information / retained-copy page.
+\NewDocumentCommand{\MakeMathContestInfoSheet}{}{%
+  \if@twocolumn\onecolumn\else\clearpage\fi
+  \thispagestyle{sugakumagazine}%
+  \begingroup
+  \fontsize{7}{9.7}\selectfont
+  \setlength{\tabcolsep}{3pt}%
+  \noindent\hfill{\sffamily\fontsize{6.5}{8}\selectfont\smag@contestdatecode}\par
+  \MMContestInfoSection{賞品，解答時間と配点について}{%
+    各コースの成績上位者を表彰します．解答時間は30分以内を「SS」，
+    30分～1時間を「S」，1～2時間を「M」，2時間以上を「L」として
+    問題用紙上部の欄に記入してください．配点は各問25点です．}
+  \MMContestInfoSection{編集部の控えの記入}{%
+    下の控えには氏名，在学校・出身校，応募コースを記入してください．
+    継続応募の場合も，住所や学校に変更があるときは最新の内容を記入します．}
+  \MMContestInfoSection{応募と答案返送について}{%
+    答案は\smag@contestdeadline までに郵送してください．添削後の答案は
+    \smag@contestreturn ごろ返送します．答案と控えの氏名は同じ表記にしてください．}
+  \vspace{3mm}
+  \MMContestCutRule[以下は編集部の控えです]
+  \renewcommand{\arraystretch}{1.45}%
+  \noindent\begin{tabular}{|p{19mm}|p{52mm}|p{19mm}|p{52mm}|}
+    \hline
+    \MMContestCellLabel{住所} & 〒\hspace{4mm}都・道・府・県 &
+      \MMContestCellLabel{電話} & \\
+    \hline
+    \MMContestCellLabel{氏名} & & \MMContestCellLabel{\smag@contestissue} &
+      \smag@contestcourses\quad 点\quad 番 \\
+    \hline
+    \MMContestCellLabel{志望校} &
+      \multicolumn{3}{l|}{\hspace{2mm}大学\hfill 学部・類・学科\hspace{12mm}} \\
+    \hline
+    \MMContestCellLabel{在学校・出身校} &
+      \multicolumn{3}{l|}{\hspace{2mm}立\hfill 高校\quad 1年・2年・3年・卒\hspace{8mm}} \\
+    \hline
+  \end{tabular}\par
+  \vspace{3mm}
+  \begin{center}
+    {\sffamily\gtfamily\bfseries\fontsize{10}{12}\selectfont
+      \smag@contesttitle}
+    \quad
+    {\smag@contestvolume\quad\smag@contestdatecode\quad\smag@contestcourses}
+  \end{center}
+  \hrule height .45pt
+  \vspace{1.5mm}
+  \noindent{\sffamily\gtfamily\bfseries 通信欄}\par
+  \MMContestRuledLines{7}
+  \endgroup
+}
+
+% --- A4 proof sheet with a centred JIS B5 cover ------------------------
+
+\newcommand{\smag@covermainline}[2]{%
+  \noindent
+  \begingroup
+    \setlength{\fboxsep}{1pt}%
+    \raisebox{.2ex}{%
+      \colorbox{SMcoverBlue}{%
+        \makebox[27mm][c]{%
+          \color{white}\sffamily\gtfamily\bfseries
+          \fontsize{6.2}{7.2}\selectfont #1}}}%
+  \endgroup
+  \hspace{2mm}%
+  \parbox[t]{91mm}{%
+    \raggedright\sffamily\gtfamily\bfseries
+    \fontsize{9.4}{11.2}\selectfont\strut #2\strut}%
+  \par\vspace{1.05mm}%
+}
+
+\newcommand{\smag@coversubline}[2]{%
+  \noindent
+  \begingroup
+    \setlength{\fboxsep}{1pt}%
+    \fcolorbox{SMcoverOrange}{white}{%
+      \makebox[29mm][c]{%
+        \color{SMcoverOrange}\sffamily\gtfamily\bfseries
+        \fontsize{6.2}{7.2}\selectfont #1}}%
+  \endgroup
+  \par\vspace{.65mm}%
+  {\raggedright\sffamily\gtfamily\bfseries
+    \fontsize{10.2}{12.3}\selectfont #2\par}%
+  \vspace{4.2mm}%
+}
+
+\newcommand{\smag@covercheckpaper}{%
+  \ifdim\paperwidth<209mm
+    \PackageWarning{surikumi}{%
+      The cover sheet should be compiled on A4 paper (210mm x 297mm)}%
+  \else\ifdim\paperwidth>211mm
+    \PackageWarning{surikumi}{%
+      The cover sheet should be compiled on A4 paper (210mm x 297mm)}%
+  \fi\fi
+  \ifdim\paperheight<296mm
+    \PackageWarning{surikumi}{%
+      The cover sheet should be compiled on A4 paper (210mm x 297mm)}%
+  \else\ifdim\paperheight>298mm
+    \PackageWarning{surikumi}{%
+      The cover sheet should be compiled on A4 paper (210mm x 297mm)}%
+  \fi\fi
+}
+
+\newcommand{\smag@coveranimal}{%
+  \ifstrempty{\smag@coveranimalimage}{}{%
+    \IfFileExists{\smag@coveranimalimage}{%
+      \begin{scope}[blend mode=multiply]
+        \node[
+          anchor=south west,
+          inner sep=0pt,
+          opacity=\smag@coveranimalopacity
+        ] at (\smag@coveranimalx,\smag@coveranimaly) {%
+          \includegraphics[width=\smag@coveranimalwidth]{\smag@coveranimalimage}};
+      \end{scope}
+    }{%
+      \PackageWarning{surikumi}{%
+        Cover animal image `\smag@coveranimalimage' not found}%
+    }%
+  }%
+}
+
+% Produces one A4 page.  The B5 trim box is 182mm x 257mm and is centred on
+% the sheet (14mm side margins and 20mm top/bottom margins).  Artwork extends
+% 3mm past the trim on every side; crop marks begin 1mm beyond that bleed.
+\NewDocumentCommand{\MakeMathMagazineCover}{}{%
+  \clearpage
+  \thispagestyle{empty}%
+  \smag@covercheckpaper
+  \begingroup
+  \setlength{\parindent}{0pt}%
+  \begin{tikzpicture}[remember picture,overlay,x=1mm,y=1mm]
+    \coordinate (SMtrimSW) at
+      ($(current page.center)+(-91mm,-128.5mm)$);
+    \begin{scope}[shift={(SMtrimSW)}]
+      % Three-millimetre bleed around the 182mm x 257mm finished cover.
+      \begin{scope}
+        \clip (-3,-3) rectangle (185,260);
+        \fill[white] (-3,-3) rectangle (185,260);
+
+        % Original low-poly colour fields, kept pale behind the cover copy.
+        \fill[SMcoverWarm] (116,260)--(185,260)--(185,229)--(146,239)--cycle;
+        \fill[SMcoverLime,opacity=.72]
+          (185,168)--(116,151)--(185,137)--cycle;
+        \fill[SMcoverWarm,opacity=.58]
+          (185,137)--(122,116)--(185,102)--cycle;
+        \fill[SMcoverBlue!82]
+          (-3,-3)--(79,-3)--(93,71)--(41,92)--(-3,76)--cycle;
+        \fill[SMcoverViolet,opacity=.88]
+          (-3,-3)--(55,-3)--(71,65)--(-3,47)--cycle;
+        \fill[SMcoverCyan,opacity=.72]
+          (43,-3)--(185,-3)--(185,65)--(105,85)--(73,66)--cycle;
+        \fill[SMcoverBlue!28,opacity=.8]
+          (-3,39)--(42,93)--(101,75)--(79,-3)--(-3,-3)--cycle;
+
+        \smag@coveranimal
+
+        % Month panel.
+        \fill[SMcoverBlue] (158,207) rectangle (178,260);
+        \fill[SMcoverDeepBlue] (158,207) rectangle (178,222);
+        \fill[SMcoverDeepBlue]
+          (178,260)--(185,260)--(185,247)--(178,250)--cycle;
+        \node[
+          anchor=north,
+          text=white,
+          inner sep=0pt,
+          font=\sffamily\gtfamily\bfseries\fontsize{5.2}{6.2}\selectfont
+        ] at (168,255.6) {\smag@coverreleasenote};
+        \node[
+          text=white,
+          inner sep=0pt,
+          font=\sffamily\bfseries\fontsize{40}{41}\selectfont
+        ] at (168,238) {\smag@covermonth};
+        \draw[white,line width=.5pt] (160.5,222.3)--(175.5,222.3);
+        \node[
+          text=white,
+          inner sep=0pt,
+          font=\sffamily\fontsize{14}{15}\selectfont
+        ] at (168,214.8) {\smag@coveryear};
+
+        % Masthead and publication line.
+        \node[
+          anchor=north west,
+          text=SMink,
+          inner sep=0pt,
+          font=\sffamily\SMSeriesFont\fontsize{58}{60}\selectfont
+        ] at (7,244) {\smag@covermasthead};
+        \node[
+          anchor=north west,
+          text=SMink,
+          inner sep=0pt,
+          font=\sffamily\fontsize{4.4}{5.3}\selectfont
+        ] at (7,253.3) {\smag@coverpublicationnote};
+
+        % Feature label and headline.
+        \draw[SMcoverOrange,line width=.45pt] (15,205)--(30,205);
+        \draw[SMcoverOrange,line width=.45pt] (45,205)--(60,205);
+        \node[
+          text=SMcoverOrange,
+          inner sep=0pt,
+          font=\sffamily\gtfamily\bfseries\fontsize{7.2}{8}\selectfont
+        ] at (37.5,205) {\smag@coverfeaturelabel};
+        \node[
+          anchor=north west,
+          text=SMcoverBlue,
+          inner sep=0pt,
+          font=\sffamily\SMSeriesFont\fontsize{21.5}{25}\selectfont
+        ] at (15,198.5) {\smag@coverfeaturetitle};
+
+        \node[anchor=north west,inner sep=0pt,text=SMink]
+          at (15,179) {%
+            \begin{minipage}{124mm}
+              \setlength{\parindent}{0pt}%
+              \smag@covermainitems
+            \end{minipage}};
+
+        \node[anchor=north west,inner sep=0pt,text=SMink]
+          at (15,137) {%
+            \begin{minipage}{62mm}
+              \setlength{\parindent}{0pt}%
+              \smag@coversubitems
+            \end{minipage}};
+
+        \node[
+          anchor=south east,
+          text=white,
+          inner sep=0pt,
+          font=\sffamily\gtfamily\bfseries\fontsize{8.5}{10}\selectfont
+        ] at (176,6) {\begingroup\contourlength{.5pt}%
+          \contour{SMink}{\textcolor{white}{\smag@coverpublisher}}\endgroup};
+      \end{scope}
+
+      % Crop marks: 1mm clear of the 3mm bleed, then 5mm long.
+      \begin{scope}[draw=black,line width=.25pt]
+        \draw (0,-9)--(0,-4) (182,-9)--(182,-4);
+        \draw (0,261)--(0,266) (182,261)--(182,266);
+        \draw (-9,0)--(-4,0) (-9,257)--(-4,257);
+        \draw (186,0)--(191,0) (186,257)--(191,257);
+      \end{scope}
+    \end{scope}
+  \end{tikzpicture}%
+  \mbox{}\par
+  \endgroup
+  \clearpage
+}
+
+\ifsmag@footer
+  \fancypagestyle{sugakumagazine}{%
+    \fancyhf{}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}%
+    \if@twoside
+      \fancyfoot[LE,RO]{\sffamily\bfseries\small\thepage}%
+    \else
+      \fancyfoot[R]{\sffamily\bfseries\small\thepage}%
+    \fi
+  }
+  \AtBeginDocument{\pagestyle{sugakumagazine}}
+\else
+  \fancypagestyle{sugakumagazine}{}
+\fi
+
+% Decimal headings are an optional component for "confirmation" articles.
+% Lecture and basic-exercise articles keep their existing heading systems.
+\newcounter{mmconfirmationsection}
+\newcounter{mmconfirmationsubsection}[mmconfirmationsection]
+\renewcommand{\themmconfirmationsection}{\arabic{mmconfirmationsection}}
+\renewcommand{\themmconfirmationsubsection}{%
+  \arabic{mmconfirmationsection}.\arabic{mmconfirmationsubsection}}
+
+\NewDocumentCommand{\MMConfirmationReset}{}{%
+  \setcounter{mmconfirmationsection}{0}%
+  \setcounter{mmconfirmationsubsection}{0}%
+}
+
+\NewDocumentCommand{\MMConfirmationSection}{s m}{%
+  \par\addvspace{1.05\baselineskip}
+  \IfBooleanF{#1}{\refstepcounter{mmconfirmationsection}}%
+  \noindent
+  {\sffamily\gtfamily\bfseries
+    \fontsize{10.5}{12.5}\selectfont
+    \IfBooleanF{#1}{\themmconfirmationsection.\hspace{.7em}}#2}%
+  \par\nobreak\addvspace{.38\baselineskip}%
+}
+
+\NewDocumentCommand{\MMConfirmationSubsection}{s m}{%
+  \par\addvspace{.72\baselineskip}
+  \IfBooleanF{#1}{\refstepcounter{mmconfirmationsubsection}}%
+  \noindent
+  {\sffamily\gtfamily\bfseries
+    \fontsize{9.2}{11}\selectfont
+    \IfBooleanF{#1}{\themmconfirmationsubsection.\hspace{.65em}}#2}%
+  \par\nobreak\addvspace{.24\baselineskip}%
+}
+
+% A boxed column heading used for sections such as "解説".
+\NewDocumentCommand{\MMHeading}{m}{%
+  \par\addvspace{1.2\baselineskip}
+  \noindent
+  \begingroup
+    \setlength{\fboxsep}{4pt}%
+    \setlength{\fboxrule}{.65pt}%
+    \fcolorbox{SMink}{white}{%
+      \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+        \centering\sffamily\gtfamily\bfseries\large #1%
+      }%
+    }%
+  \endgroup
+  \par\nobreak\addvspace{.75\baselineskip}%
+}
+
+\NewDocumentCommand{\MMSubheading}{m}{%
+  \par\addvspace{.75\baselineskip}
+  \noindent
+  {\sffamily\gtfamily\bfseries #1}\par\nobreak
+  \addvspace{.2\baselineskip}%
+}
+
+% A logical case line.  It uses the ordinary body face and weight; the
+% degree-number is sufficient, so no square or typographic emphasis is added.
+\NewDocumentCommand{\MMCaseHeading}{m m}{%
+  \par\addvspace{.75\baselineskip}
+  \noindent
+  {\normalfont\rmfamily\mcfamily\mdseries #1°\quad #2}\par\nobreak
+  \addvspace{.2\baselineskip}%
+}
+
+% Rounded alternative-solution marker.  The star is optional, allowing
+% \MMAlternative[]{...} when a particular article does not use a rating mark.
+\NewDocumentCommand{\MMAlternative}{O{★} m}{%
+  \par\addvspace{.7\baselineskip}
+  \noindent
+  \MMSolutionLabel{別解}%
+  \ifstrempty{#1}{}{\hspace{.28em}{\normalfont #1}}%
+  \ifstrempty{#2}{}{\hspace{.65em}{\normalfont #2}}%
+  \par\nobreak\addvspace{.18\baselineskip}%
+}
+
+% Confirmation symbols use one deterministic drawing system.  TikZ's generic
+% pattern fill is anchored to page coordinates, so otherwise identical marks
+% can begin their hatching at different phases.  These explicit local strokes
+% keep every occurrence identical and give filled/hatched variants one outline.
+\def\smag@confirmation@squarepath{%
+  (0,0) rectangle (.82,.82)%
+}
+\def\smag@confirmation@arrowpath{%
+  (0,.28) -- (.78,.28) -- (.78,0)
+  -- (1.25,.41)
+  -- (.78,.82) -- (.78,.54) -- (0,.54) -- cycle%
+}
+
+\tikzset{
+  smag confirmation outline/.style={
+    draw=SMink,
+    line width=.38pt,
+    line cap=butt,
+    line join=miter
+  },
+  smag confirmation hatch/.style={
+    draw=SMink,
+    line width=.28pt,
+    line cap=butt
+  }
+}
+
+\newcommand{\smag@confirmation@hatchlines}{%
+  \foreach \smag@hatchoffset in
+    {-1.40,-1.12,-.84,-.56,-.28,0,.28,.56,.84}{%
+      \draw[smag confirmation hatch]
+        (\smag@hatchoffset,-.42) -- ++(1.68,1.68);%
+  }%
+}
+
+\newcommand{\smag@confirmation@symbol}[3]{%
+  \tikz[baseline=.17em,x=1em,y=1em]{%
+    \path[use as bounding box] (0,0) rectangle (#2,.82);%
+    \ifstrequal{#1}{filled}{%
+      \path[fill=SMink] #3;%
+    }{%
+      \begin{scope}
+        \clip #3;%
+        \path[fill=white] #3;%
+        \smag@confirmation@hatchlines
+      \end{scope}
+    }%
+    \path[smag confirmation outline] #3;%
+  }%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedMark}{}{%
+  \smag@confirmation@symbol{hatched}{.82}{\smag@confirmation@squarepath}%
+}
+
+\NewDocumentCommand{\MMConfirmationFilledMark}{}{%
+  \smag@confirmation@symbol{filled}{.82}{\smag@confirmation@squarepath}%
+}
+
+% Arrow-plus-note marks.  They use the same audience distinction as the
+% square comment marks: hatched for every reader, solid for motivated readers.
+\NewDocumentCommand{\MMConfirmationStripedNoteMark}{}{%
+  \smag@confirmation@symbol{hatched}{1.25}{\smag@confirmation@arrowpath}%
+  \hspace{.12em}{\normalfont\rmfamily\mcfamily\mdseries 注}%
+}
+
+\NewDocumentCommand{\MMConfirmationFilledNoteMark}{}{%
+  \smag@confirmation@symbol{filled}{1.25}{\smag@confirmation@arrowpath}%
+  \hspace{.12em}{\normalfont\rmfamily\mcfamily\mdseries 注}%
+}
+
+\newcommand{\smag@confirmationcomment@begin}[2]{%
+  \par\addvspace{.55\baselineskip}
+  \noindent #1%
+  \ifstrempty{#2}{}{\hspace{.38em}{\bfseries #2}}%
+  \hspace{.65em}\ignorespaces
+}
+
+\newcommand{\smag@confirmationcomment@end}{%
+  \par\addvspace{.28\baselineskip}%
+}
+
+% Leave the optional number empty for an isolated comment.  Supply 1, 2, ...
+% only while a related local sequence continues; never use a document-wide
+% running comment number.
+% Hatched square: a comment intended for every reader.
+\NewDocumentEnvironment{mmconfirmationgeneralcomment}{O{}}{%
+  \smag@confirmationcomment@begin{\MMConfirmationStripedMark}{#1}%
+}{%
+  \smag@confirmationcomment@end
+}
+
+% Solid square: an optional or advanced comment for motivated readers.
+\NewDocumentEnvironment{mmconfirmationadvancedcomment}{O{}}{%
+  \smag@confirmationcomment@begin{\MMConfirmationFilledMark}{#1}%
+}{%
+  \smag@confirmationcomment@end
+}
+
+% Backward-compatible generic name.  It always means the general,
+% all-readers form; new source should prefer the explicit environment name.
+\NewDocumentEnvironment{mmconfirmationcomment}{O{}}{%
+  \begin{mmconfirmationgeneralcomment}[#1]%
+}{%
+  \end{mmconfirmationgeneralcomment}%
+}
+
+% Short square comments.  Square marks have no other semantic use.
+\NewDocumentCommand{\MMConfirmationGeneralComment}{O{} +m}{%
+  \begin{mmconfirmationgeneralcomment}[#1]#2\end{mmconfirmationgeneralcomment}%
+}
+
+\NewDocumentCommand{\MMConfirmationAdvancedComment}{O{} +m}{%
+  \begin{mmconfirmationadvancedcomment}[#1]#2\end{mmconfirmationadvancedcomment}%
+}
+
+% Arrow-plus-note annotations.  The fill again indicates the audience.
+\NewDocumentEnvironment{mmconfirmationgeneralnote}{O{}}{%
+  \smag@confirmationcomment@begin{\MMConfirmationStripedNoteMark}{#1}%
+}{%
+  \smag@confirmationcomment@end
+}
+
+\NewDocumentEnvironment{mmconfirmationadvancednote}{O{}}{%
+  \smag@confirmationcomment@begin{\MMConfirmationFilledNoteMark}{#1}%
+}{%
+  \smag@confirmationcomment@end
+}
+
+\NewDocumentEnvironment{mmconfirmationnote}{O{}}{%
+  \begin{mmconfirmationgeneralnote}[#1]%
+}{%
+  \end{mmconfirmationgeneralnote}%
+}
+
+\NewDocumentCommand{\MMConfirmationGeneralNote}{O{} +m}{%
+  \begin{mmconfirmationgeneralnote}[#1]#2\end{mmconfirmationgeneralnote}%
+}
+
+\NewDocumentCommand{\MMConfirmationAdvancedNote}{O{} +m}{%
+  \begin{mmconfirmationadvancednote}[#1]#2\end{mmconfirmationadvancednote}%
+}
+
+% Backward-compatible generic short name: a general note for every reader.
+\NewDocumentCommand{\MMConfirmationNote}{O{} +m}{%
+  \MMConfirmationGeneralNote[#1]{#2}%
+}
+
+\NewDocumentCommand{\MMConfirmationProofLabel}{O{証明}}{%
+  {\sffamily\gtfamily\bfseries [#1]}\nobreak\hspace{.65em}%
+}
+
+\NewDocumentEnvironment{mmconfirmationproof}{O{証明}}{%
+  \par\addvspace{.48\baselineskip}
+  \noindent\MMConfirmationProofLabel[#1]\ignorespaces
+}{%
+  \par\addvspace{.28\baselineskip}%
+}
+
+\NewDocumentCommand{\MMConfirmationRunInHeading}{m}{%
+  {\sffamily\gtfamily\bfseries #1：}\nobreak\hspace{.5em}%
+}
+
+% Lecture-style note used by the pre-existing article format.
+\NewDocumentCommand{\MMNote}{m}{%
+  \par\smallskip
+  \begingroup
+    \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
+    \normalfont\rmfamily\mcfamily\mdseries
+    \noindent
+    \textcolor{SMrule}{\raisebox{.05ex}{$\blacktriangleright$}}%
+    \hspace{.35em}#1\par
+  \endgroup
+  \smallskip
+}
+
+% Compatibility command retained for confirmation sources.  The ordinary
+% \sum now selects the same fixed-size glyph and stacked limits.
+\NewDocumentCommand{\MMCompactSum}{m m}{%
+  \sum_{#1}^{#2}%
+}
+
+% Compact black label used for 例題, 問題, and 解.
+\NewDocumentCommand{\MMBlackLabel}{m}{%
+  \tikz[baseline=-.5ex]
+    \node[fill=SMink,text=white,rounded corners=1.2pt,
+      inner xsep=2.2pt,inner ysep=.7pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
+}
+
+\NewDocumentCommand{\MMSolutionLabel}{m}{%
+  \tikz[baseline=-.48ex]
+    \node[fill=SMink,text=white,rounded corners=4pt,
+      inner xsep=1.5pt,inner ysep=.8pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
+}
+
+% Exercise numbers deliberately remain in a regular Mincho weight; the black
+% label carries the emphasis, as in the printed references.
+\NewDocumentCommand{\MMExerciseNumber}{m}{%
+  {\normalfont\rmfamily\mcfamily\mdseries #1}%
+}
+
+% Solid-rule example box. The optional argument overrides the automatic
+% number, e.g. \begin{mmexample}[3.1]{次の定積分を計算せよ．}
+\newcounter{mmexample}
+\NewDocumentEnvironment{mmexample}{O{} m}{%
+  \refstepcounter{mmexample}%
+  \def\smag@example@number{#1}%
+  \ifstrempty{#1}{\edef\smag@example@number{\arabic{mmexample}}}{}%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=SMrule,
+    boxrule=.55pt,
+    sharp corners,
+    left=2.5mm,
+    right=2.5mm,
+    top=2.2mm,
+    bottom=2.3mm,
+    before skip=.8\baselineskip,
+    after skip=.8\baselineskip
+  ]%
+  \noindent\MMBlackLabel{例題}\hspace{.35em}%
+  \MMExerciseNumber{\smag@example@number}\hspace{.8em}#2\par\smallskip
+}{%
+  \end{tcolorbox}%
+}
+
+% Boxed lecture problem.  Kept separate from the numbered drill list so that
+% labels such as 3.2 or 8.2 can be supplied directly.
+\newcounter{mmproblem}
+\NewDocumentEnvironment{mmproblem}{O{} m}{%
+  \refstepcounter{mmproblem}%
+  \def\smag@problem@number{#1}%
+  \ifstrempty{#1}{\edef\smag@problem@number{\arabic{mmproblem}}}{}%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=SMrule,
+    boxrule=.55pt,
+    sharp corners,
+    left=2.5mm,
+    right=2.5mm,
+    top=2.2mm,
+    bottom=2.3mm,
+    before skip=.8\baselineskip,
+    after skip=.8\baselineskip
+  ]%
+  \noindent\MMBlackLabel{問題}\hspace{.35em}%
+  \MMExerciseNumber{\smag@problem@number}\hspace{.8em}#2\par\smallskip
+}{%
+  \end{tcolorbox}%
+}
+
+% Black circular number used in mock exams and past-paper sheets.
+\NewDocumentCommand{\MMMockNumber}{m}{%
+  \tikz[baseline=-.62ex]
+    \node[circle,fill=SMink,text=white,draw=none,
+      minimum size=2.05em,inner sep=0pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
+}
+
+% Outer frame containing a complete mock-exam problem set.
+\NewDocumentEnvironment{mmmockpaper}{O{}}{%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=SMink,
+    boxrule=.75pt,
+    sharp corners,
+    left=3.3mm,
+    right=3.3mm,
+    top=2.5mm,
+    bottom=2.8mm,
+    before skip=.45\baselineskip,
+    after skip=.75\baselineskip,
+    title={#1},
+    colbacktitle=white,
+    coltitle=SMink,
+    fonttitle=\sffamily\gtfamily\bfseries,
+    attach boxed title to top left={xshift=3mm,yshift=-1mm},
+    boxed title style={frame hidden,interior hidden}
+  ]%
+}{%
+  \end{tcolorbox}%
+}
+
+% One large numbered question inside mmmockpaper.  The optional argument is a
+% parenthetical classification such as 共通, 文系, or 理系.
+\NewDocumentEnvironment{mmmockquestion}{m O{}}{%
+  \begin{list}{}{%
+    \setlength{\leftmargin}{3.25em}%
+    \setlength{\labelwidth}{2.45em}%
+    \setlength{\labelsep}{.55em}%
+    \setlength{\topsep}{.45\baselineskip}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parsep}{.15\baselineskip}%
+    \setlength{\itemsep}{0pt}%
+  }%
+  \item[\MMMockNumber{#1}]%
+  \ifstrempty{#2}{}{{\normalfont\mcfamily（#2）}\hspace{.85em}}%
+  \ignorespaces
+}{%
+  \end{list}%
+}
+
+\newlist{mmmockparts}{enumerate}{1}
+\setlist[mmmockparts]{
+  label=（\arabic*）,
+  leftmargin=3em,
+  labelsep=.5em,
+  topsep=.35\baselineskip,
+  partopsep=0pt,
+  parsep=.1\baselineskip,
+  itemsep=.35\baselineskip
+}
+
+% Compact lower-roman list used only in confirmation-format summaries.
+\newlist{mmconfirmationroman}{enumerate}{1}
+\setlist[mmconfirmationroman]{
+  label=(\roman*),
+  ref=\roman*,
+  align=right,
+  leftmargin=3.4em,
+  labelsep=.62em,
+  topsep=.28\baselineskip,
+  partopsep=0pt,
+  parsep=.08\baselineskip,
+  itemsep=.22\baselineskip
+}
+
+% Unframed explanatory block with an inline compact solution marker.
+\newtcolorbox{mmsolution}[1][解]{
+  enhanced,
+  breakable,
+  frame hidden,
+  colback=white,
+  boxsep=0pt,
+  left=0pt,
+  right=0pt,
+  top=.5mm,
+  bottom=.5mm,
+  before skip=.45\baselineskip,
+  after skip=.45\baselineskip,
+  before upper={\noindent\MMSolutionLabel{#1}\hspace{.65em}\ignorespaces}
+}
+
+% Numbered problem list for basic drills and entrance-exam selections.
+\newlist{mmproblems}{enumerate}{1}
+\setlist[mmproblems]{
+  label={\sffamily\gtfamily\bfseries\fontsize{12}{13.5}\selectfont\arabic*.},
+  ref=\arabic*,
+  align=right,
+  leftmargin=2.9em,
+  labelsep=.45em,
+  itemindent=0pt,
+  topsep=.45\baselineskip,
+  partopsep=0pt,
+  parsep=.15\baselineskip,
+  itemsep=.85\baselineskip
+}
+
+\NewDocumentCommand{\MMSource}{m}{%
+  \par\nobreak\smallskip
+  \hfill{\normalfont\color{SMink}（#1）}%
+}
+
+\NewDocumentCommand{\MMBlank}{O{12mm}}{%
+  \tikz[baseline=-.55ex]
+    \node[draw=SMrule,line width=.45pt,minimum width=#1,
+      minimum height=1.65em,inner sep=0pt] {};%
+}
+
+% A deliberately small raised circle, matching the five-minute mark in the
+% difficulty legend more closely than the full-width Japanese white circle.
+\NewDocumentCommand{\MMFiveMinuteMark}{}{%
+  \raisebox{.32ex}{\fontsize{6.2}{6.2}\selectfont °}%
+}
+
+\ExplSyntaxOn
+\cs_new_protected:Npn \smag_time_marks:n #1
+  {
+    \int_compare:nNnTF {#1} < {0}
+      {\PackageWarning{surikumi}{Target~time~must~be~non-negative}%
+       #1\,分}
+      {
+        \int_compare:nNnTF {\int_mod:nn {#1} {5}} = {0}
+          {
+            \prg_replicate:nn {\int_div_truncate:nn {#1} {10}} {*}%
+            \int_compare:nNnT {\int_mod:nn {#1} {10}} = {5}
+              {\MMFiveMinuteMark}%
+          }
+          {\PackageWarning{surikumi}{Target~time~must~be~a~multiple~of~5}%
+           #1\,分}
+      }
+  }
+\NewDocumentCommand{\MMTimeMarks}{m}{\smag_time_marks:n {#1}}
+\ExplSyntaxOff
+
+% Difficulty letter plus target-time marks. Ten minutes becomes *, and the
+% remaining five minutes becomes °; therefore 25 automatically becomes **°.
+\NewDocumentCommand{\MMDifficulty}{m m}{%
+  {\normalfont\mcfamily #1\MMTimeMarks{#2}}%
+}
+
+\NewDocumentCommand{\MMDifficultyItem}{m m m}{%
+  {\bfseries #1}\nobreak\hspace{.12em}$\cdots$\hspace{.12em}%
+  \MMDifficulty{#2}{#3}%
+}
+
+\NewDocumentCommand{\MMLegend}{O{（記号については☞目次）} m}{%
+  \par\noindent
+  {\small\sffamily\gtfamily\bfseries ◎問題の難易と目標時間}%
+  \hspace{.45em}{\scriptsize #1}\hfill\rule{8mm}{.7pt}\par
+  \vspace{1mm}{\normalfont\mcfamily #2}\par\vspace{1.5mm}
+}
+
+\AtBeginDocument{%
+  \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
+  \setlength{\parindent}{1em}%
+  \setlength{\parskip}{0pt}%
+  \smag@applyverticalrhythm
+}
+\makeatother
+
+\endinput

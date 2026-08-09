@@ -1,0 +1,95 @@
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi}
+
+\MathMagazineSetup{
+  feature={},
+  series={要点の整理／数学 B},
+  series-position=left,
+  pattern=scales,
+  title={数列の確認},
+  author={数学編集部},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={演習前の確認用に，基本公式と考え方を短く整理します．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+\MMConfirmationReset
+
+\MMConfirmationSection{基本的な数列}
+\MMConfirmationSubsection{等差数列}
+
+初項 $a$，公差 $d$ の等差数列 $\{a_n\}$ について，次の公式を確認する．
+
+\begin{mmconfirmationroman}
+  \item $a_{n+1}-a_n=d$
+  \item $a_n=a+(n-1)d$
+  \item 和 $S_n=\sum_{k=1}^{n}a_k$ は
+    \[
+      S_n=\dfrac{a+a_n}{2}n
+    \]
+\end{mmconfirmationroman}
+
+\MMConfirmationGeneralComment{一般項では，初項から第 $n$ 項までに公差を $n-1$ 回加える．}
+
+\MMConfirmationSubsection{等比数列}
+
+初項 $a$，公比 $r$ の等比数列 $\{a_n\}$ について，
+
+\begin{mmconfirmationroman}
+  \item $a_{n+1}=ra_n$
+  \item $a_n=ar^{n-1}$
+  \item $r\neq 1$ のとき
+    \[
+      S_n=\dfrac{a(r^n-1)}{r-1}
+    \]
+\end{mmconfirmationroman}
+
+\MMConfirmationGeneralNote{$r=1$ のときは，$S_n=na$ と別に扱う．}
+
+\MMConfirmationAdvancedComment{和の変形は，$\sum_{k=1}^{n}kr^k$ の計算にも応用できる．}
+
+\MMConfirmationAdvancedNote{等比数列の和を $r$ で微分する方法もある．}
+
+\MMConfirmationSection{数列の和}
+\MMConfirmationSubsection{和から一般項へ}
+
+数列 $\{a_n\}$ の初項から第 $n$ 項までの和を $S_n$ とする．
+
+\MMConfirmationRunInHeading{基本公式}
+$a_1=S_1$ であり，$n\geq 2$ のとき
+\[
+  a_n=S_n-S_{n-1}
+\]
+である．
+
+\MMConfirmationGeneralNote[1]{$n\geq 2$ では，$S_n-S_{n-1}$ を計算する．}
+\MMConfirmationGeneralNote[2]{$n=1$ は，$a_1=S_1$ に戻って確認する．}
+
+\MMConfirmationSubsection{階差と和}
+
+数列 $\{b_n\}$ が
+\[
+  b_{n+1}-b_n=a_n
+\]
+を満たすとする．$n\geq 2$ のとき，
+\[
+  b_n=b_1+\sum_{k=1}^{n-1}a_k
+\]
+となる．
+
+\begin{mmconfirmationproof}
+等式 $b_{k+1}-b_k=a_k$ を $k=1,2,\ldots,n-1$ について加えると，
+\begin{align*}
+  \sum_{k=1}^{n-1}(b_{k+1}-b_k)
+    &= (b_2-b_1)+\cdots+(b_n-b_{n-1}) \\
+    &= b_n-b_1
+\end{align*}
+となる．
+\end{mmconfirmationproof}
+
+\end{document}
