@@ -1,0 +1,89 @@
+% 型6：誤答分析型
+% よくある誤答を先に示し，どこで論理が切れているかを特定してから正答へ進む．
+% 「解けたつもり」を崩す用途に向く．差がつく単元に絞って使う．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={誤答研究／数学 I},
+  series-position=left,
+  pattern=zigzags,
+  title={絶対値と平方根},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={答だけを見れば正しく見える誤答を集めた．どの行で論理が切れているかを指摘できるようにする．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\begin{mmproblem}[1]{}
+$\sqrt{(x-3)^2}=3-x$ を満たす実数 $x$ の範囲を求めよ．
+\end{mmproblem}
+
+\begin{msmistake}
+$\sqrt{(x-3)^2}=x-3$ であるから，与式は $x-3=3-x$ となる．
+これを解いて $2x=6$ すなわち $x=3$ である．
+\end{msmistake}
+
+\MSWhereWrong{$\sqrt{A^2}=A$ としている点である．正しくは $\sqrt{A^2}=|A|$
+であり，$A$ の符号によって $A$ と $-A$ のどちらになるかが変わる．}
+
+\begin{mmsolution}
+$\sqrt{(x-3)^2}=|x-3|$ であるから，与式は
+\[
+  |x-3|=3-x
+\]
+となる．一般に $|A|=-A$ となるのは $A\leq 0$ のときであり，
+ここでは $3-x=-(x-3)$ であるから，条件は $x-3\leq 0$ である．
+よって
+\[
+  x\leq 3
+\]
+となる．
+\end{mmsolution}
+
+\MMNote{$x=3$ も解の一つだが，解は $x=3$ だけではない．誤答は「解を一つ見つけて満足する」形になっている．}
+
+\begin{mmproblem}[2]{}
+$\sqrt{x^2}+\sqrt{(x-2)^2}=2$ を満たす実数 $x$ の範囲を求めよ．
+\end{mmproblem}
+
+\begin{msmistake}
+$\sqrt{x^2}=x$，$\sqrt{(x-2)^2}=x-2$ であるから，
+$x+(x-2)=2$ より $x=2$ である．
+\end{msmistake}
+
+\MSWhereWrong{ここでも絶対値を外す向きを決めずに進めている．
+$|x|$ と $|x-2|$ は符号の変わり目が $x=0$ と $x=2$ の二か所にあるため，
+場合分けは三通りになる．}
+
+\begin{mmsolution}
+与式は $|x|+|x-2|=2$ である．
+
+\MMCaseHeading{1}{$x<0$ のとき}
+$|x|=-x$，$|x-2|=2-x$ であるから左辺は $2-2x$ となる．
+$2-2x=2$ より $x=0$ であり，$x<0$ を満たさない．
+
+\MMCaseHeading{2}{$0\leq x\leq 2$ のとき}
+$|x|=x$，$|x-2|=2-x$ であるから左辺は $2$ となり，等式は常に成り立つ．
+
+\MMCaseHeading{3}{$x>2$ のとき}
+$|x|=x$，$|x-2|=x-2$ であるから左辺は $2x-2$ となる．
+$2x-2=2$ より $x=2$ であり，$x>2$ を満たさない．
+
+以上より
+\[
+  0\leq x\leq 2
+\]
+となる．
+\end{mmsolution}
+
+\MMNote{$|x|+|x-2|$ は数直線上で $0$ と $2$ への距離の和を表す．この見方をすると，答が区間になることが図から読める．}
+
+\end{document}

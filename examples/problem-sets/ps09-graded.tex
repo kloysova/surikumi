@@ -1,0 +1,105 @@
+% 型9：難易度別総合演習型
+% 難易度記号と目標時間を付けた一覧表を先頭に置き，読者に選ばせる．
+% 単元を横断する総復習に向く．既存の \MMLegend と \MMDifficulty を使う．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={総合演習／数学 I・A},
+  series-position=left,
+  pattern=diamonds,
+  title={分野をまたぐ 6 題},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={難易度と目標時間を見て，取り組む問題を自分で選ぶ．全問を順に解く必要はない．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\MMLegend{A は基本，B は標準，C はやや難を表す．
+$*$ は 10 分，\MMFiveMinuteMark{} は 5 分を表し，
+$**$\MMFiveMinuteMark{} なら目標 25 分である．}
+
+\begin{msindex}
+  1 & 二次不等式と整数解 & \MMDifficulty{A}{10} & 基本 \\
+  2 & 三角比と面積 & \MMDifficulty{A}{15} & 09 東京電機大・改 \\
+  3 & 場合の数（重複を除く） & \MMDifficulty{B}{20} & 12 立命館大・改 \\
+  4 & データの分析と分散 & \MMDifficulty{B}{20} & 基本 \\
+  5 & 整数の性質（合同式） & \MMDifficulty{B}{25} & 14 千葉大・改 \\
+  6 & 図形と論証 & \MMDifficulty{C}{30} & 08 一橋大・改 \\
+\end{msindex}
+
+\begin{mmproblems}
+  \item 二次不等式 $x^2-(a+1)x+a<0$ を満たす整数 $x$ がちょうど 2 個
+    存在するような定数 $a$ の範囲を求めよ．
+    \MMSource{\MMDifficulty{A}{10}}
+
+  \item $\triangle\mathrm{ABC}$ において $\mathrm{AB}=5$，$\mathrm{BC}=7$，
+    $\mathrm{CA}=8$ である．$\triangle\mathrm{ABC}$ の面積を求めよ．
+    \MMSource{\MMDifficulty{A}{15}\quad 09 東京電機大・改}
+
+  \item 赤，青，白の玉が各 3 個ずつある．同じ色の玉は区別しない．
+    この 9 個の玉から 4 個を選ぶ方法は何通りあるか．
+    \MMSource{\MMDifficulty{B}{20}\quad 12 立命館大・改}
+
+  \item 5 個の値 $2,\,4,\,6,\,8,\,10$ の分散を求めよ．
+    また，各値を 3 倍したときの分散を求めよ．
+    \MMSource{\MMDifficulty{B}{20}}
+
+  \item $7^{100}$ を $10$ で割った余りを求めよ．
+    \MMSource{\MMDifficulty{B}{25}\quad 14 千葉大・改}
+
+  \item 鋭角三角形 $\mathrm{ABC}$ の内部に点 $\mathrm{P}$ をとる．
+    $\mathrm{PA}+\mathrm{PB}+\mathrm{PC}$ が最小となる $\mathrm{P}$ について，
+    $\angle\mathrm{APB}=\angle\mathrm{BPC}=\angle\mathrm{CPA}$ が成り立つことを示せ．
+    \MMSource{\MMDifficulty{C}{30}\quad 08 一橋大・改}
+\end{mmproblems}
+
+\MMHeading{略\qquad 解}
+
+\begin{mmproblems}
+  \item $x^2-(a+1)x+a=(x-1)(x-a)$ である．$a>1$ のとき解は $1<x<a$ で，
+    整数解が $2,\,3$ の 2 個となるのは $3<a\leq 4$ のときである．
+    $a<1$ のとき解は $a<x<1$ で，整数解が $-1,\,0$ の 2 個となるのは
+    $-2\leq a<-1$ のときである．よって
+    \[
+      -2\leq a<-1,\quad 3<a\leq 4
+    \]
+
+  \item 余弦定理より $\cos\mathrm{B}=\dfrac{25+49-64}{2\cdot 5\cdot 7}=\dfrac{1}{7}$
+    である．よって $\sin\mathrm{B}=\dfrac{4\sqrt{3}}{7}$ となり，面積は
+    \[
+      \dfrac{1}{2}\cdot 5\cdot 7\cdot\dfrac{4\sqrt{3}}{7}=10\sqrt{3}
+    \]
+
+  \item 各色の個数を $(x,y,z)$ とすると $x+y+z=4$，$0\leq x,y,z\leq 3$ である．
+    制限なしの解は $15$ 通りで，いずれかが $4$ になる場合が $3$ 通りあるから
+    \[
+      15-3=12
+    \]
+
+  \item 平均は $6$ で，分散は $\dfrac{16+4+0+4+16}{5}=8$ である．
+    各値を $3$ 倍すると分散は $3^2$ 倍になるから
+    \[
+      72
+    \]
+
+  \item $7^1,7^2,7^3,7^4$ の一の位は $7,9,3,1$ と 4 個周期で繰り返す．
+    $100=4\cdot 25$ であるから
+    \[
+      1
+    \]
+
+  \item 点 $\mathrm{P}$ を固定して考えると，$\mathrm{PA}+\mathrm{PB}+\mathrm{PC}$ が
+    最小となる点はフェルマー点である．$\triangle\mathrm{APB}$ を $\mathrm{P}$ の
+    まわりに $60^\circ$ 回転して折れ線を一直線に伸ばす議論により，
+    三つの角が等しくなることが従う．
+\end{mmproblems}
+
+\end{document}

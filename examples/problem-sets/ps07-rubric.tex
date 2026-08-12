@@ -1,0 +1,89 @@
+% 型7：答案添削・採点基準型
+% 実際の答案を載せ，採点基準表と講評を添える．
+% 記述式で「何を書けば点になるか」を伝える用途に向く．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={答案研究／数学 II},
+  series-position=left,
+  pattern=parquet,
+  title={不等式の証明で何が点になるか},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={結論が合っていても書き落とすと減点される箇所がある．採点基準を先に見てから答案を読むこと．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\begin{mmproblem}[1]{}
+$a>0$，$b>0$ のとき，
+\[
+  \dfrac{a+b}{2}\geq\sqrt{ab}
+\]
+が成り立つことを示せ．また，等号が成り立つ条件を求めよ．
+\end{mmproblem}
+
+\begin{msrubric}
+  差 $\dfrac{a+b}{2}-\sqrt{ab}$ を考える方針を示している & 2 \\
+  $(\sqrt{a}-\sqrt{b})^2$ の形に変形している & 3 \\
+  $a>0$，$b>0$ より $\sqrt{a}$，$\sqrt{b}$ が実数であることに触れている & 1 \\
+  平方が $0$ 以上であることから不等式を結論している & 2 \\
+  等号成立条件を $a=b$ と正しく求めている & 2 \\
+\end{msrubric}
+
+\MMSubheading{答案例}
+
+\begin{mmsolution}[答案]
+$a>0$，$b>0$ であるから $\sqrt{a}$ と $\sqrt{b}$ はともに実数である．
+このとき
+\begin{align*}
+  \dfrac{a+b}{2}-\sqrt{ab}
+    &= \dfrac{a-2\sqrt{ab}+b}{2}\\
+    &= \dfrac{(\sqrt{a}-\sqrt{b})^2}{2}
+\end{align*}
+となる．実数の平方は $0$ 以上であるから
+$(\sqrt{a}-\sqrt{b})^2\geq 0$ であり，したがって
+\[
+  \dfrac{a+b}{2}-\sqrt{ab}\geq 0
+\]
+が成り立つ．すなわち $\dfrac{a+b}{2}\geq\sqrt{ab}$ である．
+
+等号が成り立つのは $(\sqrt{a}-\sqrt{b})^2=0$ のとき，
+すなわち $\sqrt{a}=\sqrt{b}$ のときである．
+$a>0$，$b>0$ より，これは
+\[
+  a=b
+\]
+と同値である．
+\end{mmsolution}
+
+\MSComment{差をとって平方の形に持ち込む流れは書けている．
+$\sqrt{a}$，$\sqrt{b}$ が実数であることへの一言があるため，
+平方が $0$ 以上という根拠が宙に浮いていない．満点である．}
+
+\MMSubheading{減点される答案}
+
+\begin{msmistake}[減点例]
+両辺を 2 乗すると $\dfrac{(a+b)^2}{4}\geq ab$ となる．
+展開して $a^2+2ab+b^2\geq 4ab$ より $(a-b)^2\geq 0$ であり，
+これは常に成り立つ．よって示された．
+\end{msmistake}
+
+\MSWhereWrong{示したい不等式を最初に真と仮定して変形している．
+このままでは「$(a-b)^2\geq 0$ ならばもとの不等式が成り立つ」ことを
+示していない．同値変形であることを断るか，$(a-b)^2\geq 0$ から
+出発して逆向きに書き直す必要がある．}
+
+\MSComment{両辺が非負であることを述べたうえで
+「2 乗しても大小関係は変わらない」と明示すれば同値変形になり，
+この方針でも満点になる．方針が悪いのではなく，論理の向きの断りが
+抜けている．}
+
+\end{document}

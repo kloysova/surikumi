@@ -13,6 +13,7 @@ LuaLaTeX パッケージである．JIS B5 判・2段組を基本に，講義，
 - 例題，問題，解答，別解，注記のための部品
 - 確認記事向けの節見出し，コメント，注釈，証明表示
 - 行内式と別行数式で大きさをそろえ，上下限を上下に置く `\sum`
+- `\sum` の字形に自作フォント `SugakuFourier-Math-Extension` を既定で使用
 - TeX で生成する12種類の独自見出しパターン
 
 ## 必要な環境
@@ -61,6 +62,18 @@ TeX Gyre が利用可能な場合は既定書体として使用する．
 ```latex
 \usepackage[density=standard,bodyleading=12pt]{surikumi}
 ```
+
+`\sum` の字形は既定で自作フォントから取る．差し替わるのは Σ だけで，
+積分や括弧などは文書側の数式書体のまま変わらない．文書側の Σ に
+戻す場合は次のように指定する．
+
+```latex
+\usepackage[sigma=document]{surikumi}
+```
+
+自作フォントはプロジェクト内の `texmf/` にあり，`config/.latexmkrc` と
+`Makefile` が検索パスへ加える．独自のビルド手順を使う場合は，
+`config/.latexmkrc` と同じ環境変数を設定する．
 
 ## サンプルのビルド
 

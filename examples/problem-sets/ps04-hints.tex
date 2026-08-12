@@ -1,0 +1,75 @@
+% 型4：段階ヒント型
+% 問題のあとにヒントを 3 段階で置き，必要なところまで読んで再挑戦させる．
+% 「解答を見てしまう」ことを避けたい層に向く．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={段階演習／数学 A},
+  series-position=left,
+  pattern=hexagons,
+  title={確率の考え方},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={手が止まったらヒント1だけを読み，もう一度考える．最後まで読まずに解ければそれでよい．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\begin{mmproblem}[1]{}
+赤玉 3 個，白玉 5 個が入った袋から，玉を 1 個ずつ取り出す操作を
+2 回続けて行う．取り出した玉は袋へ戻さない．
+2 回目に赤玉が出る確率を求めよ．
+\end{mmproblem}
+
+\MSHint{1}{1 回目に何が出たかで場合が分かれる．2 回目の色だけを見て
+数え上げようとすると，袋の中身が定まらない．}
+
+\MSHint{2}{1 回目が赤である事象と白である事象は互いに排反であり，
+2 回目に赤が出る事象はこの二つに分けて足し合わせられる．}
+
+\MSHint{3}{1 回目が赤のとき，袋には赤 2 個と白 5 個が残る．
+1 回目が白のとき，赤 3 個と白 4 個が残る．}
+
+\MSHintBreak
+
+\begin{mmsolution}
+1 回目が赤である事象を $A$，白である事象を $B$ とする．
+$A$ と $B$ は互いに排反であり，2 回目に赤が出る事象は
+$A$ が起こって赤，または $B$ が起こって赤の場合に分かれる．
+
+$A$ が起こる確率は $\dfrac{3}{8}$ で，このとき袋には赤 2 個と白 5 個が
+残るから，続けて赤が出る確率は $\dfrac{2}{7}$ である．
+
+$B$ が起こる確率は $\dfrac{5}{8}$ で，このとき袋には赤 3 個と白 4 個が
+残るから，続けて赤が出る確率は $\dfrac{3}{7}$ である．
+
+したがって求める確率は
+\begin{align*}
+  \dfrac{3}{8}\cdot\dfrac{2}{7}+\dfrac{5}{8}\cdot\dfrac{3}{7}
+    &= \dfrac{6}{56}+\dfrac{15}{56}\\
+    &= \dfrac{21}{56}\\
+    &= \dfrac{3}{8}
+\end{align*}
+となる．
+\end{mmsolution}
+
+\MMNote{答は 1 回目に赤が出る確率と等しい．どの回に取り出しても赤が出る確率は変わらない．}
+
+\MMAlternative{並べ方で数える}
+8 個の玉を区別して 1 列に並べる方法は $8!$ 通りある．
+このうち 2 番目が赤であるものは，2 番目に置く赤の選び方が 3 通り，
+残り 7 個の並べ方が $7!$ 通りであるから $3\cdot 7!$ 通りである．
+よって求める確率は
+\[
+  \dfrac{3\cdot 7!}{8!}=\dfrac{3}{8}
+\]
+となる．
+
+\end{document}

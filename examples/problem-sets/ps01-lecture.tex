@@ -1,0 +1,110 @@
+% 型1：講義一体型
+% 例題を入口に解説を進め，最後に類題で定着を確かめる．
+% 初出単元の導入に向く．問題と解説が同じ流れの中にあるため，
+% 読者は行き来せずに読み通せる．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={講義／数学 B},
+  series-position=left,
+  pattern=scales,
+  title={漸化式の基本形},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={等差型・等比型に帰着させる手順を，例題を通して確認する．特性方程式は「なぜその値を引くのか」から入る．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+漸化式の問題は，与えられた式を等差型 $a_{n+1}-a_n=d$ か等比型
+$a_{n+1}=ra_n$ のどちらかへ帰着させることが基本である．
+まず，最も素直な形から確認する．
+
+\begin{mmexample}[1.1]{等比型への帰着}
+$a_1=2$，$a_{n+1}=3a_n-4$ で定まる数列 $\{a_n\}$ の一般項を求めよ．
+\end{mmexample}
+
+\begin{mmsolution}
+$a_{n+1}=3a_n-4$ の形をそのまま繰り返しても一般項は見えない．
+そこで，両辺から同じ定数 $\alpha$ を引いて
+\[
+  a_{n+1}-\alpha=3(a_n-\alpha)
+\]
+の形にすることを考える．右辺を展開すると $3a_n-3\alpha$ であるから，
+$-4=-3\alpha$ すなわち $\alpha=2$ である．
+
+このとき $b_n=a_n-2$ とおくと $b_{n+1}=3b_n$ であり，$b_1=a_1-2=0$
+である．よって $b_n=0$ となり，
+\[
+  a_n=2
+\]
+となる．
+\end{mmsolution}
+
+\MMNote{$\alpha$ は $x=3x-4$ の解である．この $x$ についての方程式を特性方程式という．}
+
+初項の値によっては $b_n$ が $0$ にならない．一般の場合を確認する．
+
+\begin{mmexample}[1.2]{初項が変わる場合}
+$a_1=5$，$a_{n+1}=3a_n-4$ で定まる数列 $\{a_n\}$ の一般項を求めよ．
+\end{mmexample}
+
+\begin{mmsolution}
+特性方程式 $x=3x-4$ の解は $x=2$ であるから，
+\[
+  a_{n+1}-2=3(a_n-2)
+\]
+が成り立つ．$b_n=a_n-2$ とおくと $\{b_n\}$ は公比 $3$ の等比数列で，
+$b_1=5-2=3$ である．したがって $b_n=3\cdot 3^{n-1}=3^n$ であり，
+\[
+  a_n=3^n+2
+\]
+となる．
+\end{mmsolution}
+
+\MMAlternative{差をとる}
+$a_{n+1}=3a_n-4$ と $a_n=3a_{n-1}-4$ の辺々を引くと
+$a_{n+1}-a_n=3(a_n-a_{n-1})$ となる．$c_n=a_{n+1}-a_n$ とおけば
+$\{c_n\}$ は公比 $3$ の等比数列であり，$c_1=a_2-a_1=11-5=6$ である．
+よって $c_n=6\cdot 3^{n-1}=2\cdot 3^n$ であり，$n\geq 2$ のとき
+\[
+  a_n=a_1+\sum_{k=1}^{n-1}c_k=5+\sum_{k=1}^{n-1}2\cdot 3^k
+\]
+となる．これを計算すると $a_n=3^n+2$ を得る．$n=1$ でも成り立つ．
+
+\MMNote{特性方程式を使う解法が使えない形でも，差をとる方針は通用することがある．}
+
+\MMSubheading{類題}
+
+\begin{mmproblem}[1.1]{}
+$a_1=1$，$a_{n+1}=2a_n+3$ で定まる数列 $\{a_n\}$ の一般項を求めよ．
+\end{mmproblem}
+
+\begin{mmproblem}[1.2]{}
+$a_1=4$，$a_{n+1}=\dfrac{1}{2}a_n+1$ で定まる数列 $\{a_n\}$ の一般項を求めよ．
+\end{mmproblem}
+
+\MMHeading{類題の答}
+
+\begin{mmproblems}
+  \item 特性方程式 $x=2x+3$ の解は $x=-3$ である．$a_{n+1}+3=2(a_n+3)$
+    より，$a_n+3=(a_1+3)\cdot 2^{n-1}=4\cdot 2^{n-1}=2^{n+1}$ である．
+    よって
+    \[
+      a_n=2^{n+1}-3
+    \]
+  \item 特性方程式 $x=\dfrac{1}{2}x+1$ の解は $x=2$ である．
+    $a_{n+1}-2=\dfrac{1}{2}(a_n-2)$ より，
+    \[
+      a_n=2+2\left(\dfrac{1}{2}\right)^{n-1}
+    \]
+\end{mmproblems}
+
+\end{document}

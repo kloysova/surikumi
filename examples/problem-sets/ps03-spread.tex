@@ -1,0 +1,134 @@
+% 型3：見開き対応型
+% 左ページに問題，右ページに解答を置き，一つの見開きで完結させる．
+% ページをめくらずに答え合わせができるため，短時間の自習に向く．
+% 1段組にして，左右の対応を目で追えるようにする．
+\PassOptionsToPackage{twocolumn=false}{surikumi}
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={見開き演習／数学 I},
+  series-position=left,
+  pattern=checker,
+  title={二次関数の最大・最小},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={定義域が動く場合の場合分けを，見開き一組で確認する．左が問題，右が解答である．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+この見開きでは，軸と定義域の位置関係で場合分けをする型を扱う．
+左ページの 4 問を解いてから，右ページで確認する．
+
+\MSStartVerso
+
+\MSSpreadHeading{問題}
+
+\begin{mmproblems}
+  \item $f(x)=x^2-4x+1$ の $0\leq x\leq 1$ における最小値を求めよ．
+
+  \item $f(x)=x^2-4x+1$ の $0\leq x\leq 3$ における最小値を求めよ．
+
+  \item $a$ を正の定数とする．$f(x)=x^2-4x+1$ の $0\leq x\leq a$ における
+    最小値を $a$ で表せ．
+
+  \item $a$ を実数とする．$f(x)=x^2-2ax+1$ の $0\leq x\leq 1$ における
+    最小値を $a$ で表せ．
+
+  \item $f(x)=x^2-4x+1$ の $0\leq x\leq 1$ における最大値を求めよ．
+
+  \item $f(x)=-x^2+2x+3$ の $0\leq x\leq 3$ における最大値と最小値を求めよ．
+
+  \item $a$ を実数とする．$f(x)=x^2-2ax+1$ の $0\leq x\leq 1$ における
+    最大値を $a$ で表せ．
+
+  \item $a$ を実数とする．$f(x)=x^2-2x+3$ の $a\leq x\leq a+1$ における
+    最小値を $a$ で表せ．
+\end{mmproblems}
+
+\clearpage
+
+\MSSpreadHeading{解答}
+
+\begin{mmproblems}
+  \item $f(x)=(x-2)^2-3$ であるから軸は $x=2$ である．
+    定義域 $0\leq x\leq 1$ は軸の左側にあり，$f$ はこの範囲で減少する．
+    よって $x=1$ で最小となり，最小値は
+    \[
+      f(1)=-2
+    \]
+
+  \item 軸 $x=2$ は定義域 $0\leq x\leq 3$ に含まれる．
+    よって頂点で最小となり，最小値は
+    \[
+      f(2)=-3
+    \]
+
+  \item 軸 $x=2$ が定義域 $0\leq x\leq a$ に入るかどうかで分かれる．
+
+    \MMCaseHeading{1}{$0<a<2$ のとき}
+    定義域は軸の左側にあり，$f$ は減少する．よって $x=a$ で最小となり，
+    最小値は $a^2-4a+1$ である．
+
+    \MMCaseHeading{2}{$a\geq 2$ のとき}
+    軸が定義域に含まれるから，最小値は $f(2)=-3$ である．
+
+  \item $f(x)=(x-a)^2+1-a^2$ であるから軸は $x=a$ である．
+
+    \MMCaseHeading{1}{$a<0$ のとき}
+    定義域は軸の右側にあり，$f$ は増加する．よって $x=0$ で最小となり，
+    最小値は $1$ である．
+
+    \MMCaseHeading{2}{$0\leq a\leq 1$ のとき}
+    軸が定義域に含まれるから，最小値は $1-a^2$ である．
+
+    \MMCaseHeading{3}{$a>1$ のとき}
+    定義域は軸の左側にあり，$f$ は減少する．よって $x=1$ で最小となり，
+    最小値は $2-2a$ である．
+
+  \item 定義域 $0\leq x\leq 1$ は軸 $x=2$ の左側にあり，$f$ は減少する．
+    よって $x=0$ で最大となり，最大値は
+    \[
+      f(0)=1
+    \]
+
+  \item $f(x)=-(x-1)^2+4$ であるから軸は $x=1$ で，グラフは上に凸である．
+    軸は定義域 $0\leq x\leq 3$ に含まれるから，最大値は $f(1)=4$ である．
+    最小値は軸から遠いほうの端点でとる．$f(0)=3$，$f(3)=0$ であるから，
+    最大値と最小値は
+    \[
+      4,\quad 0
+    \]
+
+  \item 下に凸のグラフでは，最大値は軸から遠いほうの端点でとる．
+    定義域 $0\leq x\leq 1$ の中点は $x=\dfrac{1}{2}$ である．
+
+    \MMCaseHeading{1}{$a<\dfrac{1}{2}$ のとき}
+    軸は中点より左にあり，$x=1$ のほうが遠い．最大値は $f(1)=2-2a$ である．
+
+    \MMCaseHeading{2}{$a\geq\dfrac{1}{2}$ のとき}
+    軸は中点以上にあり，$x=0$ のほうが遠い．最大値は $f(0)=1$ である．
+
+  \item $f(x)=(x-1)^2+2$ であるから軸は $x=1$ である．
+    今度は定義域 $a\leq x\leq a+1$ のほうが動く．
+
+    \MMCaseHeading{1}{$a+1<1$ すなわち $a<0$ のとき}
+    定義域は軸の左側にあり，$f$ は減少する．よって $x=a+1$ で最小となり，
+    最小値は $a^2+2$ である．
+
+    \MMCaseHeading{2}{$0\leq a\leq 1$ のとき}
+    軸が定義域に含まれるから，最小値は $f(1)=2$ である．
+
+    \MMCaseHeading{3}{$a>1$ のとき}
+    定義域は軸の右側にあり，$f$ は増加する．よって $x=a$ で最小となり，
+    最小値は $a^2-2a+3$ である．
+\end{mmproblems}
+
+\end{document}

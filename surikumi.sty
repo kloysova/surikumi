@@ -21,6 +21,7 @@
 \DeclareStringOption[8pt]{bodyfontsize}
 \DeclareStringOption[10.8pt]{bodyleading}
 \DeclareStringOption[compact]{density}
+\DeclareStringOption[custom]{sigma}
 \ProcessKeyvalOptions*
 
 \RequirePackage{luatexja-fontspec}
@@ -33,13 +34,37 @@
 % In this magazine style, display and inline summations use the same
 % text-style glyph.  Their ranges are always stacked above and below.
 \let\smag@originalsum\sum
+
+% sigma=custom (the default) takes the summation from the project's own
+% SugakuFourier-Math-Extension; sigma=document keeps the document's math
+% font.  Only the summation changes either way -- integrals, products,
+% delimiters and radicals always come from the document's math font.
+\newcommand{\smag@sumglyph}{\smag@originalsum}
+\def\smag@sigma@custom{custom}
+\ifx\smag@sigma\smag@sigma@custom
+  % The font lives in the project TEXMF tree, which is put on the search
+  % path by config/.latexmkrc and by the Makefile.  A checkout compiled
+  % without those keeps working, with the document's own summation.
+  \IfFileExists{fmxsugakufourier.fd}{%
+    \RequirePackage{sugaku-sigma}%
+    \renewcommand{\smag@sumglyph}{\SugakuSumText}%
+  }{%
+    \PackageWarning{surikumi}{%
+      Custom summation font not found; falling back to the document math
+      font.  Add the project texmf tree to TEXINPUTS, TFMFONTS, T1FONTS
+      and TEXFONTMAPS (see config/.latexmkrc), or pass sigma=document to
+      silence this warning%
+    }%
+  }%
+\fi
+
 \newcommand{\smag@fixedsum}{%
   \mathop{%
     \mathchoice
-      {\textstyle\smag@originalsum}%
-      {\textstyle\smag@originalsum}%
-      {\scriptstyle\smag@originalsum}%
-      {\scriptscriptstyle\smag@originalsum}%
+      {\textstyle\smag@sumglyph}%
+      {\textstyle\smag@sumglyph}%
+      {\scriptstyle\smag@sumglyph}%
+      {\scriptscriptstyle\smag@sumglyph}%
   }\limits
 }
 \renewcommand{\sum}{\smag@fixedsum}
@@ -723,7 +748,10 @@
     \fi
     \twocolumn[\smag@titleblock]%
   \else
-    \smag@titleblock
+    % \twocolumn[...] typesets its optional box without a paragraph indent.
+    % The one-column path starts an ordinary paragraph instead, so the
+    % full-width title minipage would be pushed out by \parindent.
+    \noindent\smag@titleblock
   \fi
   \thispagestyle{sugakumagazine}%
 }

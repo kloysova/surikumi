@@ -1,0 +1,140 @@
+% 型5：高速ドリル型
+% 短い問いを多数並べ，答えを段末の帯にまとめる．
+% 計算の速さと正確さを鍛える用途に向く．解説は付けない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={ドリル／数学 II},
+  series-position=left,
+  pattern=weave,
+  title={微分の計算},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={1 問 15 秒を目安に解く．答は各段の下にまとめてあるので，手で隠して進めること．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\MMSubheading{A\quad 多項式の微分}
+
+次の関数を $x$ について微分せよ．
+
+\begin{msdrill}
+  \item $y=x^3$
+  \item $y=5x^2$
+  \item $y=x^3-2x$
+  \item $y=4x^3+3x^2-x+7$
+  \item $y=(x+1)^2$
+  \item $y=(2x-1)^3$
+  \item $y=x^2(x-3)$
+  \item $y=\dfrac{x^4}{2}-\dfrac{x^2}{4}$
+\end{msdrill}
+
+\begin{msanswerstrip}
+  \MSAns{1}{$3x^2$}
+  \MSAns{2}{$10x$}
+  \MSAns{3}{$3x^2-2$}
+  \MSAns{4}{$12x^2+6x-1$}
+  \MSAns{5}{$2x+2$}
+  \MSAns{6}{$6(2x-1)^2$}
+  \MSAns{7}{$3x^2-6x$}
+  \MSAns{8}{$2x^3-\dfrac{x}{2}$}
+\end{msanswerstrip}
+
+\MMSubheading{B\quad 接線}
+
+曲線上の指定された点における接線の方程式を求めよ．
+
+\begin{msdrill}
+  \item $y=x^2$，点 $(1,1)$
+  \item $y=x^2$，点 $(-2,4)$
+  \item $y=x^3$，点 $(1,1)$
+  \item $y=x^3-3x$，点 $(0,0)$
+  \item $y=x^2-2x$，点 $(3,3)$
+  \item $y=-x^2+4$，点 $(1,3)$
+\end{msdrill}
+
+\begin{msanswerstrip}
+  \MSAns{1}{$y=2x-1$}
+  \MSAns{2}{$y=-4x-4$}
+  \MSAns{3}{$y=3x-2$}
+  \MSAns{4}{$y=-3x$}
+  \MSAns{5}{$y=4x-9$}
+  \MSAns{6}{$y=-2x+5$}
+\end{msanswerstrip}
+
+\MMSubheading{C\quad 増減}
+
+次の関数が極値をとる $x$ の値をすべて求めよ．極値をとらない場合は
+「なし」と答えよ．
+
+\begin{msdrill}
+  \item $y=x^2-6x$
+  \item $y=x^3-3x$
+  \item $y=x^3+3x$
+  \item $y=x^3-6x^2+9x$
+  \item $y=x^4-2x^2$
+  \item $y=x^3$
+\end{msdrill}
+
+\begin{msanswerstrip}
+  \MSAns{1}{$x=3$}
+  \MSAns{2}{$x=\pm 1$}
+  \MSAns{3}{なし}
+  \MSAns{4}{$x=1,\,3$}
+  \MSAns{5}{$x=0,\,\pm 1$}
+  \MSAns{6}{なし}
+\end{msanswerstrip}
+
+\MMNote{C の 3 と 6 は，$y'\geq 0$ が常に成り立つため増減が変わらない．$y'=0$ となる $x$ があっても極値とは限らない．}
+
+\MMSubheading{D\quad 定積分}
+
+次の定積分の値を求めよ．
+
+\begin{msdrill}
+  \item $\displaystyle\int_{0}^{1}x^2\,dx$
+  \item $\displaystyle\int_{0}^{2}(3x^2-2x)\,dx$
+  \item $\displaystyle\int_{-1}^{1}x^3\,dx$
+  \item $\displaystyle\int_{-1}^{1}(x^2+1)\,dx$
+  \item $\displaystyle\int_{1}^{3}(x-1)(x-3)\,dx$
+  \item $\displaystyle\int_{0}^{1}(2x+1)^2\,dx$
+\end{msdrill}
+
+\begin{msanswerstrip}
+  \MSAns{1}{$\dfrac{1}{3}$}
+  \MSAns{2}{$4$}
+  \MSAns{3}{$0$}
+  \MSAns{4}{$\dfrac{8}{3}$}
+  \MSAns{5}{$-\dfrac{4}{3}$}
+  \MSAns{6}{$\dfrac{13}{3}$}
+\end{msanswerstrip}
+
+\MMNote{D の 3 は奇関数の対称区間上の積分であり，計算せずに $0$ と分かる．5 は $\dfrac{(\beta-\alpha)^3}{6}$ の公式が使える．}
+
+\MMSubheading{E\quad 面積}
+
+次の曲線と直線で囲まれた部分の面積を求めよ．
+
+\begin{msdrill}
+  \item $y=x^2$ と $y=x$
+  \item $y=x^2-4$ と $x$ 軸
+  \item $y=x^2$ と $y=2x+3$
+  \item $y=x^3-x$ と $x$ 軸（$0\leq x\leq 1$ の部分）
+\end{msdrill}
+
+\begin{msanswerstrip}
+  \MSAns{1}{$\dfrac{1}{6}$}
+  \MSAns{2}{$\dfrac{32}{3}$}
+  \MSAns{3}{$\dfrac{32}{3}$}
+  \MSAns{4}{$\dfrac{1}{4}$}
+\end{msanswerstrip}
+
+\end{document}

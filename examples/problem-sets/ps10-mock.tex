@@ -1,0 +1,78 @@
+% 型10：模試型
+% 時間を計って通しで解く試験冊子の形をとる．
+% 単元の区切りではなく，一定期間の到達度を測る目的で使う．
+% 既存の mmmockpaper / mmmockquestion / \MakeMathMockTitle を用いる．
+\PassOptionsToPackage{twocolumn=false}{surikumi}
+\documentclass[lualatex,paper=b5j,fontsize=10pt]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMockSetup{
+  name={基礎到達度テスト},
+  course={第 1 回／数学 I・A},
+  audience={入試基礎講座 受講者向け},
+  description-label={このテストについて},
+  description={時間を計って実戦形式で解き，現時点の到達度を確認する．
+    採点基準と講評は次号に掲載する．解き終えた時刻を各問の欄外に記録しておくと，
+    どこで時間を使ったかがあとで分かる．},
+  time-label={試験時間},
+  time={60 分（大問 3 題）}
+}
+
+\begin{document}
+
+\MakeMathMockTitle
+
+\begin{mmmockpaper}
+  \begin{mmmockquestion}{1}[配点 30]
+    $a$ を実数とし，$f(x)=x^2-2ax+a+2$ とおく．
+    \begin{mmmockparts}
+      \item $f(x)=0$ が異なる 2 個の実数解をもつような $a$ の範囲を求めよ．
+      \item $f(x)=0$ の 2 解がともに正であるような $a$ の範囲を求めよ．
+      \item $0\leq x\leq 2$ における $f(x)$ の最小値を $a$ で表せ．
+    \end{mmmockparts}
+  \end{mmmockquestion}
+
+  \begin{mmmockquestion}{2}[配点 35]
+    1 個のさいころを 3 回投げ，出た目を順に $a$，$b$，$c$ とする．
+    \begin{mmmockparts}
+      \item $a<b<c$ となる確率を求めよ．
+      \item $a$，$b$，$c$ がこの順に等差数列をなす確率を求めよ．
+      \item $abc$ が偶数となる確率を求めよ．
+    \end{mmmockparts}
+  \end{mmmockquestion}
+
+  \begin{mmmockquestion}{3}[配点 35]
+    $\triangle\mathrm{ABC}$ において $\mathrm{AB}=6$，$\mathrm{AC}=4$，
+    $\angle\mathrm{BAC}=60^\circ$ とする．
+    $\angle\mathrm{BAC}$ の二等分線と辺 $\mathrm{BC}$ の交点を
+    $\mathrm{D}$ とする．
+    \begin{mmmockparts}
+      \item 辺 $\mathrm{BC}$ の長さを求めよ．
+      \item $\mathrm{BD}:\mathrm{DC}$ を求めよ．
+      \item 線分 $\mathrm{AD}$ の長さを求めよ．
+    \end{mmmockparts}
+  \end{mmmockquestion}
+\end{mmmockpaper}
+
+\clearpage
+
+\MSSpreadHeading{解答上の注意}
+
+\MSCheckItem{答案は各問ごとに区切って書く．}
+\MSCheckItem{場合分けをしたときは，どの場合の話かを冒頭に書く．}
+\MSCheckItem{図を描いた場合は，答案の一部として残す．}
+\MSCheckItem{最後に，答が問題の条件を満たすかどうかを確かめる．}
+
+\MSSpreadHeading{自己採点欄}
+
+\begin{msrubric}[配点]
+  \MMMockNumber{1}\quad 二次方程式の解の配置 & 30 \\
+  \MMMockNumber{2}\quad 確率 & 35 \\
+  \MMMockNumber{3}\quad 図形と計量 & 35 \\
+  合計 & 100 \\
+\end{msrubric}
+
+\MMNote{目標は 60 点である．60 点に届かなかった大問は，該当する単元の講義記事に戻ること．}
+
+\end{document}

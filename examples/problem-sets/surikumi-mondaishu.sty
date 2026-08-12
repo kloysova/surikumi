@@ -1,0 +1,287 @@
+% surikumi-mondaishu.sty
+% Companion components for the ten problem-set formats.
+%
+% This package is a proposal layer that sits on top of surikumi.sty.  It adds
+% only the parts the existing package does not already provide: staged hints,
+% drill answer strips, wrong-answer analysis, marking rubrics, solution-pattern
+% headings, and self-check boxes.  Nothing in surikumi.sty is redefined.
+%
+% House rules inherited from docs/surikumi-style-guide.md:
+%   - body text, worked answers, case splits and notes stay 明朝, normal weight,
+%     body size; only headings and labels change face;
+%   - answers are never boxed for emphasis (structural frames are separate);
+%   - no negative \vspace and no local \linespread.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{surikumi-mondaishu}[2026/08/12 Problem-set formats for surikumi]
+
+\RequirePackage{surikumi}
+\RequirePackage{array}
+\RequirePackage{booktabs}
+
+% ---------------------------------------------------------------------------
+% 1. Staged hints (段階ヒント型)
+% ---------------------------------------------------------------------------
+% \MSHint{1}{text} for a one-line hint, mshint for several paragraphs.  The
+% tier number is the point of the format, so it is set in the heading face
+% while the hint body stays identical to running text.
+
+\newlength{\ms@hintindent}
+\setlength{\ms@hintindent}{2.6em}
+
+\NewDocumentCommand{\MSHintLabel}{m}{%
+  {\sffamily\gtfamily\bfseries\fontsize{7.2}{8}\selectfont
+   \color{SMink}ヒント#1}%
+}
+
+\NewDocumentEnvironment{mshint}{m}{%
+  \par\addvspace{.55\baselineskip}%
+  \begin{list}{}{%
+    \setlength{\leftmargin}{\ms@hintindent}%
+    \setlength{\labelwidth}{\ms@hintindent}%
+    \setlength{\labelsep}{.5em}%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parsep}{.1\baselineskip}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\listparindent}{1\zw}%
+  }%
+  \item[\MSHintLabel{#1}]%
+}{%
+  \end{list}%
+  \addvspace{.25\baselineskip}%
+}
+
+\NewDocumentCommand{\MSHint}{m m}{%
+  \begin{mshint}{#1}#2\end{mshint}%
+}
+
+% A thin rule that marks where the reader should stop before reading on.
+\NewDocumentCommand{\MSHintBreak}{}{%
+  \par\addvspace{.5\baselineskip}%
+  \noindent\color{SMrule}\rule{\linewidth}{.4pt}\color{black}%
+  \par\addvspace{.5\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 2. Drill list and answer strip (高速ドリル型)
+% ---------------------------------------------------------------------------
+% Short items numbered in a compact run of columns, with the answers gathered
+% under a rule at the foot so the reader can cover them with a hand.
+
+\newlist{msdrill}{enumerate}{1}
+\setlist[msdrill]{
+  label={\sffamily\gtfamily\bfseries\fontsize{7.6}{8.6}\selectfont\arabic*},
+  ref=\arabic*,
+  align=right,
+  leftmargin=2.1em,
+  labelsep=.45em,
+  topsep=.35\baselineskip,
+  partopsep=0pt,
+  parsep=.05\baselineskip,
+  itemsep=.3\baselineskip
+}
+
+\NewDocumentCommand{\MSAnswerStripLabel}{}{%
+  {\sffamily\gtfamily\bfseries\fontsize{7.2}{8}\selectfont\color{SMink}答}%
+}
+
+% \begin{msanswerstrip} ... \end{msanswerstrip}
+% Inside, use \MSAns{1}{answer} repeatedly; entries flow as a single paragraph.
+% The strip is set inside a minipage so a column break can never fall between
+% two answers.  If it does not fit, the whole strip moves to the next column
+% together with its rule, which is what a reader covering the answers expects.
+\NewDocumentEnvironment{msanswerstrip}{}{%
+  \par\addvspace{.6\baselineskip}%
+  \noindent
+  \begin{minipage}{\linewidth}%
+    \noindent\color{SMink}\rule{\linewidth}{.55pt}\color{black}%
+    \par\addvspace{.3\baselineskip}%
+    \noindent\MSAnswerStripLabel\hspace{.6em}%
+    \ignorespaces
+}{%
+    \par
+  \end{minipage}%
+  \par\addvspace{.35\baselineskip}%
+}
+
+\NewDocumentCommand{\MSAns}{m m}{%
+  {\sffamily\gtfamily\bfseries\fontsize{7}{8}\selectfont #1}%
+  \hspace{.25em}{\normalfont\mcfamily #2}%
+  \hspace{.9em}%
+}
+
+% ---------------------------------------------------------------------------
+% 3. Wrong-answer analysis (誤答分析型)
+% ---------------------------------------------------------------------------
+% The wrong answer is set with a rule in the left margin so the reader can see
+% at a glance how far it runs.  The text itself is ordinary running text: the
+% point is what the argument says, not how loud it looks.
+
+% A breakable left rule spans the whole wrong answer, so its extent is visible
+% at a glance even when it runs over a column break.  Only the west border is
+% drawn: this marks a region, it is not a box around a result.
+\NewDocumentEnvironment{msmistake}{O{よくある誤答}}{%
+  \par\addvspace{.65\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont
+    \color{SMink}#1}\par\nobreak
+  \addvspace{.15\baselineskip}%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    frame hidden,
+    colback=white,
+    boxsep=0pt,
+    left=1.15em,
+    right=0pt,
+    top=0pt,
+    bottom=0pt,
+    borderline west={.7pt}{0pt}{SMrule},
+    before skip=0pt,
+    after skip=.2\baselineskip
+  ]%
+  \setlength{\parindent}{1\zw}%
+  \ignorespaces
+}{%
+  \end{tcolorbox}%
+}
+
+\NewDocumentCommand{\MSWhereWrong}{m}{%
+  \par\addvspace{.5\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont
+    \color{SMink}誤りの所在}\hspace{.65em}{\normalfont\mcfamily #1}%
+  \par\addvspace{.25\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 4. Marking rubric (答案添削型)
+% ---------------------------------------------------------------------------
+% 採点基準 as a plain ruled table.  Scores are data, so they are set in the
+% body face; only the column heads change face.
+
+\NewDocumentEnvironment{msrubric}{O{採点基準}}{%
+  \par\addvspace{.7\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont
+    \color{SMink}#1}\par\nobreak
+  \addvspace{.25\baselineskip}%
+  \begingroup
+  \renewcommand{\arraystretch}{1.18}%
+  \noindent
+  \begin{tabular}{@{}p{.72\linewidth}@{\hspace{.6em}}r@{}}
+    \toprule
+    {\sffamily\gtfamily\bfseries 観点} & {\sffamily\gtfamily\bfseries 配点}\\
+    \midrule
+}{%
+    \bottomrule
+  \end{tabular}%
+  \endgroup
+  \par\addvspace{.45\baselineskip}%
+}
+
+\NewDocumentCommand{\MSComment}{m}{%
+  \par\addvspace{.55\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont
+    \color{SMink}講評}\hspace{.65em}{\normalfont\mcfamily #1}%
+  \par\addvspace{.25\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 5. Solution-pattern heading (解法パターン型)
+% ---------------------------------------------------------------------------
+% A run-in heading that names the pattern and carries its catalogue number,
+% so a reader can cite 「型3」 later without ambiguity.
+
+\newcounter{mspattern}
+\NewDocumentCommand{\MSPatternReset}{}{\setcounter{mspattern}{0}}
+
+\NewDocumentCommand{\MSPattern}{m}{%
+  \refstepcounter{mspattern}%
+  \par\addvspace{.9\baselineskip}%
+  \noindent
+  \MMBlackLabel{型\arabic{mspattern}}%
+  \hspace{.6em}{\sffamily\gtfamily\bfseries\fontsize{9}{10}\selectfont #1}%
+  \par\nobreak\addvspace{.25\baselineskip}%
+}
+
+% 手順 list used under a pattern heading.
+\newlist{msprocedure}{enumerate}{1}
+\setlist[msprocedure]{
+  label={\arabic*．},
+  ref=\arabic*,
+  align=left,
+  leftmargin=2.2em,
+  labelsep=.35em,
+  topsep=.3\baselineskip,
+  partopsep=0pt,
+  parsep=.08\baselineskip,
+  itemsep=.28\baselineskip
+}
+
+% ---------------------------------------------------------------------------
+% 6. Self-check box (チェック型)
+% ---------------------------------------------------------------------------
+% Sized a little under one body character so it never outweighs the text, in
+% the same spirit as the confirmation squares in surikumi.sty.
+
+\NewDocumentCommand{\MSCheckbox}{}{%
+  \tikz[baseline=-.42ex]
+    \node[draw=SMink,line width=.5pt,minimum width=1.6mm,
+      minimum height=1.6mm,inner sep=0pt] {};%
+}
+
+\NewDocumentCommand{\MSCheckItem}{m}{%
+  \par\noindent\MSCheckbox\hspace{.55em}{\normalfont\mcfamily #1}\par
+}
+
+% ---------------------------------------------------------------------------
+% 7. Facing-page helpers (見開き対応型)
+% ---------------------------------------------------------------------------
+% \MSSpreadHeading names which half of the spread the reader is on.  The
+% caller is responsible for the page breaks; this only labels them.
+
+% The rule is a leader rather than a fixed width, so the heading cannot
+% overflow the measure no matter how long the label or how narrow the column.
+% Negative depth lifts it to the optical middle of the heading.
+\NewDocumentCommand{\MSSpreadHeading}{m}{%
+  \par\noindent
+  {\sffamily\gtfamily\bfseries\fontsize{10}{11.5}\selectfont\color{SMink}#1}%
+  \hspace{.8em}%
+  {\color{SMink}%
+   \leaders\hrule height\dimexpr.28em+.55pt\relax depth-.28em\hfill
+   \kern0pt}%
+  \par\addvspace{.55\baselineskip}%
+}
+
+% Force the next page onto a verso so that it and the page after it form one
+% physical spread.  In a twoside document verso pages carry even numbers, so a
+% blank is inserted only when the upcoming page would land on a recto.
+\NewDocumentCommand{\MSStartVerso}{}{%
+  \clearpage
+  \ifodd\value{page}\thispagestyle{empty}\null\clearpage\fi
+}
+
+% ---------------------------------------------------------------------------
+% 8. Graded problem index (難易度別総合演習型)
+% ---------------------------------------------------------------------------
+% One row per problem: number, topic, difficulty mark, target time, source.
+
+\NewDocumentEnvironment{msindex}{}{%
+  \par\addvspace{.5\baselineskip}%
+  \begingroup
+  \renewcommand{\arraystretch}{1.22}%
+  \noindent
+  \begin{tabular}{@{}r@{\hspace{.7em}}p{.44\linewidth}@{\hspace{.6em}}c@{\hspace{.6em}}l@{}}
+    \toprule
+    {\sffamily\gtfamily\bfseries 番号} &
+    {\sffamily\gtfamily\bfseries 題材} &
+    {\sffamily\gtfamily\bfseries 難易} &
+    {\sffamily\gtfamily\bfseries 出典}\\
+    \midrule
+}{%
+    \bottomrule
+  \end{tabular}%
+  \endgroup
+  \par\addvspace{.5\baselineskip}%
+}
+
+\endinput

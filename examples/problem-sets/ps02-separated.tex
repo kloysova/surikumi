@@ -1,0 +1,86 @@
+% 型2：演習・解説分離型
+% 問題だけを先に並べ，解説をあとにまとめる．
+% 読者が自力で解く時間を確保できる．既存の mmproblems と \MMSource を使う．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-mondaishu}
+
+\MathMagazineSetup{
+  feature={},
+  series={演習／数学 II},
+  series-position=left,
+  pattern=triangles,
+  title={対数関数の基本演習},
+  author={入試基礎講座},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={底の変換と真数条件を確実に扱えるかどうかを問う．まず解いてから解説へ進むこと．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+
+\begin{mmproblems}
+  \item $\log_2 12-\log_2 3$ の値を求めよ．
+    \MMSource{基本}
+
+  \item $\log_4 8$ の値を求めよ．
+    \MMSource{基本}
+
+  \item 方程式 $\log_3(x-1)+\log_3(x-3)=1$ を解け．
+    \MMSource{07 中央大・改}
+
+  \item 不等式 $\log_{1/2}(x+1)>-2$ を解け．
+    \MMSource{11 名城大・改}
+
+  \item $a=\log_{10}2$ とするとき，$\log_{10}5$ を $a$ で表せ．
+    \MMSource{基本}
+\end{mmproblems}
+
+\MMHeading{解\qquad 説}
+
+\begin{mmproblems}
+  \item 底がそろっているから，差は商の対数になる．
+    \[
+      \log_2 12-\log_2 3=\log_2\dfrac{12}{3}=\log_2 4=2
+    \]
+
+  \item 底を $2$ にそろえる．$4=2^2$，$8=2^3$ であるから
+    \[
+      \log_4 8=\dfrac{\log_2 8}{\log_2 4}=\dfrac{3}{2}
+    \]
+
+  \item 真数条件より $x-1>0$ かつ $x-3>0$ であるから $x>3$ である．
+    このもとで与式は
+    \[
+      \log_3(x-1)(x-3)=1
+    \]
+    となり，$(x-1)(x-3)=3$ すなわち $x^2-4x=0$ を得る．
+    よって $x=0,\,4$ であるが，$x>3$ より
+    \[
+      x=4
+    \]
+
+  \item 真数条件より $x+1>0$ すなわち $x>-1$ である．
+    底 $\dfrac{1}{2}$ は $1$ より小さいから，対数の大小と真数の大小は逆向きになる．
+    $-2=\log_{1/2}4$ であるから
+    \[
+      x+1<4
+    \]
+    となり $x<3$ である．真数条件と合わせて
+    \[
+      -1<x<3
+    \]
+
+  \item $10=2\cdot 5$ であるから $\log_{10}2+\log_{10}5=1$ が成り立つ．
+    よって
+    \[
+      \log_{10}5=1-a
+    \]
+\end{mmproblems}
+
+\MMNote{3 と 4 は真数条件を先に書く．答を求めてから条件で削るより，最初に $x$ の範囲を押さえるほうが確実である．}
+
+\end{document}
