@@ -1,0 +1,180 @@
+% 解説記事：号の巻頭記事．マストヘッドと中央揃えの扉を使う形．
+% 本文は本例のために書き下ろした説明文であり，実在の記事の引用ではない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-kaisetsu}
+\usepackage{bm}
+
+\MathKaisetsuSetup{
+  journal-name={数理組版},
+  masthead-first={SURIKUMI},
+  masthead-second={REVIEW},
+  issue-date={January 2026},
+  issue-number={Number 1},
+  masthead=true,
+  align=center,
+  section-style=bar,
+  feature={特集／変分原理},
+  title={変分原理の考え方},
+  author={\MKName{数理}{太郎}},
+  author-reading={すうり・たろう},
+  affiliation={数理組版編集部}
+}
+
+\begin{document}
+
+% 参照する号の通しノンブルから始める．
+\setcounter{page}{5}
+
+\MKMakeTitle
+\MKArticleReset
+
+力学の法則は，各時刻の力のつり合いから述べることもできるし，
+運動の全体をひとまとめに眺めて述べることもできる．
+後者の見方を支えるのが変分原理である．
+本稿では，最短経路の問題から出発して作用積分にいたる道筋を追い，
+その考え方が解析力学のなかでどのような位置を占めるかを整理する．
+
+\MKSection{停留値としての運動}
+
+変分原理は，ある量を最小にする，あるいはより正確には停留させる，
+という要請から運動を決める．
+まず，最小にすべき量が曲線そのものの関数である例を見ておく．
+
+\MKSubsection{弧長を最短にする曲線}
+
+平面上の 2 点 $(a,y_a)$，$(b,y_b)$ を結ぶ曲線 $y=y(x)$ の長さは
+\begin{equation}
+  L[y]=\int_a^b\sqrt{1+\bigl(y'(x)\bigr)^2}\,\mathrm{d}x
+\end{equation}
+である．ここで $L$ は数ではなく，曲線 $y$ を一つ与えるごとに
+数を返す対応であり，このような対応を汎関数とよぶ．
+汎関数の停留値を求める手続きが変分法である\MKCite{1}．
+
+$L[y]$ を最小にする曲線を求めるには，端点を固定したまま
+曲線をわずかに変形し，長さの変化を調べればよい．
+そこで，端点で消える任意の関数 $\eta(x)$ と小さな数 $\varepsilon$ を用いて
+$y(x)+\varepsilon\eta(x)$ という曲線族を考え，
+\begin{equation}
+  \left.\dfrac{\mathrm{d}}{\mathrm{d}\varepsilon}
+    L[y+\varepsilon\eta]\right|_{\varepsilon=0}=0
+\end{equation}
+を要請する．この条件が，任意の $\eta$ について成り立つことを求める点に
+変分法の特徴がある\footnote{$\eta$ を仮想変位とよぶことがある．
+仮想変位は時間の経過に伴う実際の変化ではなく，
+比較のために持ち込んだ想像上のずれである．}．
+
+\MKSubsection{作用積分}
+
+質量 $m$ の質点がポテンシャル $V(x)$ の場のなかを動く場合，
+運動エネルギーとポテンシャルの差
+\begin{equation}
+  L(\dot{x},x)=\dfrac{m}{2}\dot{x}^2-V(x)
+\end{equation}
+を Lagrange 関数とよび，時刻 $t_a$ から $t_b$ までの積分
+\begin{equation}
+  S[x]=\int_{t_a}^{t_b}L\bigl(\dot{x}(t),x(t)\bigr)\,\mathrm{d}t
+\end{equation}
+を作用積分という．最小作用の原理は，
+両端の位置 $x(t_a)=x_a$，$x(t_b)=x_b$ を固定したとき，
+実際の運動が $S[x]$ を停留させる経路として実現される，と述べる．
+
+\begin{mkremark}
+「最小」という言い方は歴史的なもので，
+実際に保証されるのは停留であって最小とは限らない．
+共役点を越えた区間では，作用は鞍点になる．
+\end{mkremark}
+
+\MKSection{Euler--Lagrange 方程式}
+
+停留の条件を書き下すと，微分方程式が現れる．
+これが変分原理と運動方程式を結ぶ橋である．
+
+\MKSubsection{変分の計算}
+
+経路 $x(t)$ に，端点で消える微小変位 $\delta x(t)$ を加える．
+作用の差を $\delta x$ の 1 次まで展開すると
+\begin{equation}
+  \delta S=\int_{t_a}^{t_b}
+    \left(\dfrac{\partial L}{\partial x}\delta x
+      +\dfrac{\partial L}{\partial\dot{x}}\delta\dot{x}\right)\mathrm{d}t
+\end{equation}
+となる．第 2 項を部分積分し，端点で $\delta x$ が消えることを使えば
+\begin{equation}
+  \delta S=\int_{t_a}^{t_b}
+    \left(\dfrac{\partial L}{\partial x}
+      -\dfrac{\mathrm{d}}{\mathrm{d}t}
+       \dfrac{\partial L}{\partial\dot{x}}\right)\delta x\,\mathrm{d}t
+\end{equation}
+が得られる．任意の $\delta x$ について $\delta S=0$ であるためには，
+括弧の中が恒等的に 0 でなければならない．すなわち
+\begin{equation}
+  \dfrac{\mathrm{d}}{\mathrm{d}t}
+    \dfrac{\partial L}{\partial\dot{x}}
+    -\dfrac{\partial L}{\partial x}=0
+\end{equation}
+である．これを Euler--Lagrange 方程式という．
+
+$L=\dfrac{m}{2}\dot{x}^2-V(x)$ を代入すれば
+\begin{equation}
+  m\ddot{x}=-\dfrac{\mathrm{d}V}{\mathrm{d}x}
+\end{equation}
+となり，Newton の運動方程式に戻る．
+変分原理は，運動方程式を別の言葉で言い換えたものだといえる\MKCite{2}．
+
+\MKSubsection{保存量}
+
+Lagrange 関数がある変数を陽に含まないとき，対応する量が保存する．
+たとえば $L$ が $x$ を含まなければ，
+$\partial L/\partial\dot{x}$ が時間によらない．
+この量を一般化運動量とよぶ．
+同様に，$L$ が時刻 $t$ を陽に含まなければ
+\begin{equation}
+  E=\dot{x}\dfrac{\partial L}{\partial\dot{x}}-L
+\end{equation}
+が保存する．これがエネルギーである．
+対称性と保存則のこの対応は，Noether の定理として一般化される．
+
+\begin{mkquote}
+座標の取り替えに対して形を変えない方程式を書きたい．
+Lagrange 形式の利点は，まさにこの点にある．
+\end{mkquote}
+
+座標を $q=q(x,t)$ と取り替えても，
+Euler--Lagrange 方程式の形は変わらない．
+Newton の運動方程式では，座標変換のたびに
+見かけの力を書き加える必要があったことと対照的である．
+
+\MKSection{経路の重ね合わせ}
+
+古典力学では停留経路だけが実現するが，
+量子力学ではすべての経路が寄与する．
+各経路に位相 $\exp\bigl[\mathrm{i}S[x]/\hbar\bigr]$ を割り当てて重ね合わせると，
+作用が停留する経路の近くだけが打ち消し合わずに残る．
+$\hbar$ が小さい極限で古典的な運動が現れる仕組みは，このように理解できる\MKCite{3}．
+
+\begin{mkchronology}{変分法の歩み}
+  \MKChronoItem{1662}{Fermat が光の最短時間の原理を述べる}
+  \MKChronoItem{1696}{Bernoulli が最速降下線の問題を提出する}
+  \MKChronoItem{1744}{Euler が変分法の一般的な手続きをまとめる}
+  \MKChronoItem{1755}{Lagrange が変分記号 $\delta$ を導入する}
+  \MKChronoItem{1788}{『解析力学』が刊行される}
+  \MKChronoItem{1834}{Hamilton が正準形式を与える}
+  \MKChronoItem{1918}{Noether が対称性と保存則の対応を示す}
+\end{mkchronology}
+
+停留値をとる経路を探すという一つの発想が，
+幾何の問題から力学へ，さらに場の理論へと運ばれてきた．
+形式が変わっても，端点を固定して比較するという手続きは変わらない．
+
+\begin{mkreferences}
+  \item 変分法の初等的な入門としては，最短経路と最速降下線の
+    二つの問題を並べて扱う教科書が読みやすい．
+  \item 解析力学の標準的な教科書は，Lagrange 形式から
+    Hamilton 形式への移行を一つの章にまとめている．
+  \item 経路積分については，古典極限の議論を追える解説を選ぶとよい．
+\end{mkreferences}
+
+\MKByline
+
+\end{document}

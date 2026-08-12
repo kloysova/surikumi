@@ -7,6 +7,8 @@
 
 数式・記号・句読点は，必ず先に [`notation-style-guide.md`](notation-style-guide.md) に従う．本書は，その内容を紙面上でどう構成するかを定める．
 
+月刊の学術解説誌の体裁で組む記事には，追加パッケージ `surikumi-kaisetsu.sty` を使う．その部品と規約は [`kaisetsu-format.md`](kaisetsu-format.md) にまとめてある．本書の共通方針は解説記事にも及ぶが，見出し，注，数式番号の形は解説記事のものを使う．
+
 ## 2. 共通する紙面方針
 
 - JIS B5 判，縦長，2 段組を基本とする．
@@ -180,6 +182,24 @@ $a_{n+1}=ra_n$ のとき，$a_n=r^{n-1}a_1$ である．
 \MMConfirmationSubsection*{別の見方}
 ```
 
+### 3.4 解説記事
+
+月刊の学術解説誌の体裁で読み物を組む記事には，`surikumi-kaisetsu.sty` を使う．本文 9 pt・行送り 14.2 pt，1 段 45 行の版面に，号の題字，特集の扉，罫を伴う節見出し，`(1.1)` 形式の数式番号，`*1)` 形式の段下の注，年表，参考文献，署名を置く．
+
+```latex
+\usepackage{surikumi-kaisetsu}
+
+\MathKaisetsuSetup{title={変分原理の考え方},author={\MKName{数理}{太郎}}}
+
+\MKMakeTitle
+\MKArticleReset
+
+\MKSection{停留値としての運動}
+本文を置く\footnote{注は段の下に集める．}．
+```
+
+解説記事の見出し，注，数式番号は，講義・演習・確認の各形式とは別系統である．一方の部品をもう一方へ持ち込まない．詳しくは [`kaisetsu-format.md`](kaisetsu-format.md) を参照する．
+
 ## 4. 数式書体と `\sum`
 
 `surikumi.sty` は本文用の和文・欧文書体を設定する．数式書体の輪郭は，
@@ -337,6 +357,12 @@ $a_{n+1}=ra_n$ のとき，$a_n=r^{n-1}a_1$ である．
 | 確認 | 全読者向けの長い「矢印＋注」 | `mmconfirmationgeneralnote` |
 | 確認 | 意欲的な読者向けの長い「矢印＋注」 | `mmconfirmationadvancednote` |
 | 確認 | 証明 | `mmconfirmationproof` |
+| 解説記事 | 記事の扉 | `\MKMakeTitle` |
+| 解説記事 | 節と小見出し | `\MKSection`，`\MKSubsection` |
+| 解説記事 | 段下の注 | `\footnote` |
+| 解説記事 | 参考文献と署名 | `mkreferences`，`\MKByline` |
+
+解説記事の部品は `surikumi-kaisetsu.sty` にあり，一覧は [`kaisetsu-format.md`](kaisetsu-format.md) にまとめている．
 
 ## 8. 避けること
 
@@ -357,3 +383,4 @@ $a_{n+1}=ra_n$ のとき，$a_n=r^{n-1}a_1$ である．
 - 別行数式の `\sum` だけを大型字形へ切り替えない．
 - `\sum` の上端と下端を右肩・右下へ置かない．
 - 1 段の中へ長すぎる式を押し込まない．必要なら式を分けるか，一時的に全段幅を使う．
+- 解説記事の見出し，注，数式番号を，講義・演習・確認の記事へ持ち込まない．逆も同じである．

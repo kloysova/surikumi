@@ -1,0 +1,210 @@
+% 解説記事：特集内の記事扉．左寄せの見出し，副題，飾り，段抜きの囲みを使う形．
+% 本文は本例のために書き下ろした説明文であり，実在の記事の引用ではない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-kaisetsu}
+
+% 記事扉の飾り．参考紙面の図案を写さず，TeX で生成した独自の図形を置く．
+\newcommand{\MyOrnament}{%
+  \begin{tikzpicture}[x=1mm,y=1mm,line width=.45pt]
+    \fill[SMink] (0,0) circle (.9);
+    \fill[SMink] (30,10) circle (.9);
+    \draw[SMrule] (0,0) .. controls (10,14) and (20,14) .. (30,10);
+    \draw[SMrule] (0,0) .. controls (12,6) and (18,2) .. (30,10);
+    \draw[SMrule] (0,0) .. controls (8,-8) and (24,-4) .. (30,10);
+    \draw[SMink,line width=.8pt] (0,0) .. controls (12,1) and (20,7) .. (30,10);
+  \end{tikzpicture}%
+}
+
+\MathKaisetsuSetup{
+  journal-name={数理組版},
+  issue-date={February 2026},
+  issue-number={Number 2},
+  % 値に読点を含む鍵は，全体をもう一重の中括弧で囲む．
+  footer-line={{\MKHeadingFace 数理組版}\hspace{.7em}NO. 2, FEBRUARY 2026},
+  align=left,
+  masthead=false,
+  feature-bar=true,
+  section-style=pillars,
+  feature={特集／積分の考え方},
+  title={面積を測るという操作},
+  subtitle={Riemann 積分から測度へ},
+  author={\MKName{組版}{花子}},
+  author-reading={くみはん・はなこ},
+  affiliation={数理組版編集部},
+  ornament={\MyOrnament},
+  ornament-width={34mm}
+}
+
+\begin{document}
+
+\setcounter{page}{12}
+
+\MKMakeTitle
+\MKArticleReset
+
+面積を求める操作は，長方形の面積からはじめて，
+細かく分けて足し合わせるという手続きで拡張されてきた．
+この手続きをどこまで押し進められるかを問うと，
+積分の定義そのものを選び直す必要が生じる．
+本稿では，分割の仕方を変えるという一つの発想が
+Riemann 積分から Lebesgue 積分への移行を導く様子をたどる．
+
+\MKSection{分割と近似}
+
+区間を細かく分ける，各断片で高さを一つ選ぶ，
+断片の幅と高さの積を足す．
+Riemann 積分の定義はこの三つの操作からできている．
+
+\MKSubsection{Riemann 和}
+
+閉区間 $[a,b]$ の分割
+$a=x_0<x_1<\cdots<x_n=b$ と，
+各小区間の代表点 $\xi_k\in[x_{k-1},x_k]$ に対して
+\begin{equation}
+  R(f;\Delta,\xi)
+    =\sum_{k=1}^{n}f(\xi_k)\,(x_k-x_{k-1})
+\end{equation}
+を Riemann 和という．
+分割の幅の最大値を $\lVert\Delta\rVert$ と書き，
+$\lVert\Delta\rVert\to0$ のとき $R(f;\Delta,\xi)$ が
+代表点の取り方によらず一つの値へ近づくならば，
+$f$ は $[a,b]$ で積分可能であるという\MKCite{1}．
+
+\begin{figure}[t]
+  \begin{mkfigurebody}
+    \begin{tikzpicture}[x=1mm,y=1mm,line width=.5pt]
+      \draw[SMrule,line width=.4pt] (0,0) -- (52,0);
+      \draw[SMrule,line width=.4pt] (0,0) -- (0,28);
+      \foreach \i in {0,...,5}{%
+        \pgfmathsetmacro{\xa}{8*\i}%
+        \pgfmathsetmacro{\ya}{6+16*sin((\xa+6)*1.7)*sin((\xa+6)*1.7)}%
+        \draw[SMrule,line width=.35pt,fill=SMpale]
+          (\xa,0) rectangle (\xa+8,\ya);%
+      }
+      \draw[SMink,line width=.7pt,domain=0:48,samples=80,smooth]
+        plot (\x,{6+16*sin((\x+2)*1.7)*sin((\x+2)*1.7)});
+      \node[font=\fontsize{6.5}{7}\selectfont] at (-2.6,26) {$y$};
+      \node[font=\fontsize{6.5}{7}\selectfont] at (51,-2.6) {$x$};
+      \node[font=\fontsize{6.5}{7}\selectfont] at (0,-2.6) {$a$};
+      \node[font=\fontsize{6.5}{7}\selectfont] at (48,-2.6) {$b$};
+    \end{tikzpicture}
+  \end{mkfigurebody}
+  \caption{分割の各小区間で高さを一つ選び，長方形の面積を足し合わせる．
+    分割を細かくしたときの極限が Riemann 積分である．}
+\end{figure}
+
+\MKSubsection{上限和と下限和}
+
+代表点の選び方をすべて試す代わりに，
+各小区間での上限と下限を取れば
+\begin{equation}
+  s(f;\Delta)\leq R(f;\Delta,\xi)\leq S(f;\Delta)
+\end{equation}
+がつねに成り立つ．
+分割を細かくすると $s$ は増加し $S$ は減少するから，
+両者が同じ値に収束することが積分可能性の判定条件になる．
+連続関数がつねに積分可能であることは，
+一様連続性からこの判定条件を確かめて示される\footnote{閉区間上の
+連続関数は一様連続である．この事実を使うと，
+分割を十分細かく取れば $S-s$ をいくらでも小さくできる．}．
+
+\MKSection{分割の向きを変える}
+
+Riemann 和では定義域を分割した．
+値域を分割すると，同じ面積が別の形で書ける．
+
+\MKSubsection{値域による分割}
+
+$f$ の値域を $0=y_0<y_1<\cdots<y_m$ と分け，
+$E_j=\{x\mid y_{j-1}\leq f(x)<y_j\}$ と置く．
+このとき和
+\begin{equation}
+  \sum_{j=1}^{m}y_{j-1}\,\mu(E_j)
+\end{equation}
+を考える．ここで $\mu(E_j)$ は集合 $E_j$ の大きさであり，
+区間であれば長さそのものである．
+値域の分割を細かくした極限が Lebesgue 積分である\MKCite{2}．
+
+\begin{mkremark}
+定義域の分割では，各小区間で関数が大きく振れると
+上限和と下限和が離れてしまう．
+値域の分割では，関数の振れ方ではなく
+集合 $E_j$ の測りやすさが問題になる．
+\end{mkremark}
+
+\MKSubsection{測度という道具}
+
+区間の長さを出発点にして，
+可算個の和と補集合について整合する形で
+集合の大きさを定めたものが測度である．
+測度が定まる集合の族を可測集合族という．
+
+\begin{mkquote}
+長さを測れる集合とは何か．
+この問いに答えることが，積分を定義することにあたる．
+\end{mkquote}
+
+すべての集合に長さを与えることはできない．
+可測でない集合が存在するという事実は，
+測度をどこまで広げられるかの限界を示している\MKCite{3}．
+
+\MKSection[band]{二つの積分の関係}
+
+Riemann 積分可能な関数は Lebesgue 積分可能であり，
+値も一致する．逆は成り立たない．
+有理数の点で $1$，無理数の点で $0$ をとる関数は，
+Riemann 和が代表点の取り方で変わるため Riemann 積分できないが，
+Lebesgue 積分では値が $0$ と定まる．
+
+\begin{mkinsert}
+\MKRunIn{要点}
+定義域を分ける立場では，関数の連続性が効いてくる．
+値域を分ける立場では，集合の可測性が効いてくる．
+同じ面積を測るという操作でも，
+どこを細かく分けるかによって必要な道具が変わる．
+\end{mkinsert}
+
+極限と積分の交換が自由になることが，
+値域を分割する立場の実際的な利点である．
+単調収束定理と優収束定理は，
+どちらも Riemann 積分では扱いにくかった状況を扱えるようにする．
+
+\MKSubsection{関数列の極限}
+
+各点で $f_n(x)\to f(x)$ となる関数列を考える．
+Riemann 積分の枠内では，極限の関数が積分可能である保証がない．
+値域を分割する立場では，$f_n$ が単調に増加していれば
+\begin{equation}
+  \lim_{n\to\infty}\int f_n\,\mathrm{d}\mu=\int f\,\mathrm{d}\mu
+\end{equation}
+がそのまま成り立つ．
+積分の順序と極限の順序を入れ替えてよい条件が，
+簡潔な形にまとまる点が要になる．
+
+\MKSubsection{測ることの限界}
+
+長さの概念を平行移動で不変な形に保ちながら
+すべての部分集合へ広げることはできない．
+この事実は，測度を定義するときに
+可測集合の族をあらかじめ限っておく理由になっている．
+積分を広げる操作には，
+どこまで広げるかという選択が必ず伴う．
+
+\begin{mkfullinsert}[b]
+\MKRunIn{この特集について}
+積分をめぐる三つの見方――区分求積，測度，超関数――を
+それぞれ独立に読める記事として並べた．
+どの記事も高校数学の範囲から書き起こしてあるので，
+関心のある順に読み進めてよい．
+\end{mkfullinsert}
+
+\begin{mkreferences}
+  \item 区分求積から積分へ進む標準的な微分積分学の教科書を参照した．
+  \item 測度論の入門書は，区間の長さの拡張として測度を導入している．
+  \item 可測でない集合の構成には選択公理を用いる．
+\end{mkreferences}
+
+\MKByline
+
+\end{document}

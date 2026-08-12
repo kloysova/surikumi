@@ -1,0 +1,960 @@
+% surikumi-kaisetsu.sty
+% Monthly-review (解説記事) layout for surikumi.  LuaLaTeX + jlreq.
+% Copyright (c) 2026 surikumi contributors
+% Released under the MIT License.
+%
+% This companion package adds the page furniture of a monthly scientific
+% review: an issue masthead, feature labels, full-width article openings,
+% ruled section headings, section-numbered equations, *1) footnotes,
+% chronologies, reference lists and a closing byline.
+%
+% It is an independent implementation of conventions that are common to
+% academic monthlies in general.  No commercial magazine's masthead,
+% logotype, ornament or lettering is reproduced; every default string is a
+% neutral placeholder that the document replaces with its own metadata.
+%
+% House rules inherited from docs/surikumi-style-guide.md:
+%   - body text, worked answers, case splits and notes stay 明朝, normal
+%     weight and body size; only headings and labels change face;
+%   - vertical rhythm is controlled by package options, never by negative
+%     \vspace or local \linespread in the manuscript;
+%   - ornaments are generated in TeX or supplied by the document.
+
+\NeedsTeXFormat{LaTeX2e}[2022-06-01]
+\ProvidesPackage{surikumi-kaisetsu}[2026/08/12 v1.0 Journal-style expository article layout]
+
+% surikumi carries the engine check, the body fonts, the colours and the
+% \sum treatment.  Load it with its own options *before* this package when
+% they need to differ from the defaults.
+\RequirePackage{surikumi}
+\RequirePackage{kvoptions}
+\RequirePackage{etoolbox}
+\RequirePackage{enumitem}
+
+\SetupKeyvalOptions{family=kaisetsu,prefix=mk@}
+\DeclareBoolOption[true]{layout}
+\DeclareBoolOption[true]{footer}
+\DeclareBoolOption[true]{footnotes}
+\DeclareBoolOption[true]{captions}
+\DeclareBoolOption[false]{flushbottom}
+\DeclareStringOption[9pt]{bodysize}
+\DeclareStringOption[14.2pt]{leading}
+\DeclareStringOption[8mm]{gutter}
+\DeclareStringOption[45]{lines}
+\DeclareStringOption[bar]{sectionstyle}
+\DeclareStringOption[section]{eqnumbering}
+\ProcessKeyvalOptions*
+
+\makeatletter
+
+% ---------------------------------------------------------------------------
+% 1. Page geometry
+% ---------------------------------------------------------------------------
+% A review page is looser than the study-magazine page surikumi sets up by
+% default: a wider measure, a longer line and roughly 1.6 times leading.
+% The column measure below gives about 22 zenkaku per line at 9 pt.
+%
+% The text height is not taken from the bottom margin but computed from the
+% leading in \AtBeginDocument, so that a column of running text is an exact
+% number of lines.  With \topskip equal to the leading, both columns then
+% end on the same baseline without any stretching.
+
+\ifmk@layout
+  \RequirePackage{geometry}
+  \geometry{
+    paperwidth=182mm,
+    paperheight=257mm,
+    top=12mm,
+    bottom=20mm,
+    inner=18mm,
+    outer=18mm,
+    headheight=0mm,
+    headsep=0mm,
+    footskip=8.5mm
+  }
+  \setlength{\columnsep}{\mk@gutter}
+  \setlength{\columnseprule}{0pt}
+\fi
+
+% ---------------------------------------------------------------------------
+% 2. Faces
+% ---------------------------------------------------------------------------
+% Body and heading faces reuse the families surikumi already selected, so a
+% document that overrides them with fonts=false keeps its own choices.
+
+\newcommand{\MKBodyFace}{\normalfont\rmfamily\mcfamily\mdseries}
+\newcommand{\MKHeadingFace}{\sffamily\gtfamily\bfseries}
+\newcommand{\MKTitleFace}{\SMAuthorMinchoFont}
+\newcommand{\MKGothicTitleFace}{\SMAuthorGothicFont}
+\newcommand{\MKMastheadFace}{\rmfamily}
+\newcommand{\MKPageNumberFace}{\rmfamily\bfseries}
+
+% The masthead is letterspaced Latin capitals.  Tracking is applied through
+% fontspec when the default Latin face is available; otherwise the masthead
+% simply prints untracked rather than failing.
+\IfFontExistsTF{TeX Gyre Termes}{%
+  \newfontfamily\mk@mastheadface[LetterSpace=7.0]{TeX Gyre Termes}%
+  \renewcommand{\MKMastheadFace}{\mk@mastheadface}%
+}{}
+
+% ---------------------------------------------------------------------------
+% 3. Tunable dimensions and sizes
+% ---------------------------------------------------------------------------
+% Every size is a macro rather than a hard-coded number so that a house can
+% re-tune the format in one place.  They are expanded at use time.
+
+\def\mk@mastheadsize{17}      \def\mk@mastheadleading{20}
+\def\mk@mastheadsidesize{9.6} \def\mk@mastheadsideleading{11}
+\def\mk@featuresize{8.6}      \def\mk@featureleading{10.5}
+\def\mk@titlesize{21.5}       \def\mk@titleleading{26}
+\def\mk@subtitlesize{10.5}    \def\mk@subtitleleading{13}
+\def\mk@authorsize{14}        \def\mk@authorleading{16.5}
+\def\mk@sectionsize{9.8}      \def\mk@sectionleading{12}
+\def\mk@subsectionsize{9.2}   \def\mk@subsectionleading{11.5}
+\def\mk@captionsize{7.6}      \def\mk@captionleading{10.2}
+\def\mk@footnotesize{6.9}     \def\mk@footnoteleading{8.8}
+\def\mk@smallsize{7.3}        \def\mk@smallleading{9.6}
+\def\mk@footerlinesize{7.6}   \def\mk@footerlineleading{9}
+\def\mk@pagenumbersize{9.5}   \def\mk@pagenumberleading{11}
+
+% Absolute rule weights and gaps.
+\newlength{\mk@pillarwidth}   \setlength{\mk@pillarwidth}{2.6pt}
+\newlength{\mk@sectionrule}   \setlength{\mk@sectionrule}{.5pt}
+\newlength{\mk@sectiongap}    \setlength{\mk@sectiongap}{1.4mm}
+\newlength{\mk@featurerulewidth}\setlength{\mk@featurerulewidth}{.48\textwidth}
+\newlength{\mk@featurethick}  \setlength{\mk@featurethick}{2.2pt}
+\newlength{\mk@featurethin}   \setlength{\mk@featurethin}{.4pt}
+\newlength{\mk@footnotehang}
+
+% Font-relative dimensions are kept as macros, not as lengths: a length is
+% frozen at the size in force when the package loads, which is the class's
+% base size rather than the size the component is finally set in.
+\def\mk@pillarheight{1.55em}
+\def\mk@pillarraise{-.34em}
+\def\mk@pillarsep{.62em}
+\def\mk@captionlabelsep{1\zw}
+\def\mk@chronoyear{4.6em}
+
+% ---------------------------------------------------------------------------
+% 4. Article and issue metadata
+% ---------------------------------------------------------------------------
+% Defaults are deliberately generic placeholders.  A document is expected to
+% replace all of them through \MathKaisetsuSetup.
+
+\def\mk@journalname{数理組版}
+\def\mk@mastheadfirst{SURIKUMI}
+\def\mk@mastheadsecond{REVIEW}
+\def\mk@issuedate{January 2026}
+\def\mk@issuenumber{Number 1}
+\def\mk@footerline{}
+\def\mk@feature{}
+\def\mk@title{記事の表題}
+\def\mk@subtitle{}
+\def\mk@author{著者名}
+\def\mk@authorreading{}
+\def\mk@affiliation{}
+\def\mk@ornament{}
+\def\mk@ornamentwidth{34mm}
+\def\mk@titlealign{center}
+\def\mk@titleface{\MKTitleFace}
+\def\mk@masthead@wanted{false}
+\def\mk@featurebar@wanted{false}
+\def\mk@footerplacement{odd}
+
+\pgfkeys{
+  /surikumi-kaisetsu/.is family,
+  /surikumi-kaisetsu,
+  journal-name/.store in=\mk@journalname,
+  masthead-first/.store in=\mk@mastheadfirst,
+  masthead-second/.store in=\mk@mastheadsecond,
+  issue-date/.store in=\mk@issuedate,
+  issue-number/.store in=\mk@issuenumber,
+  footer-line/.store in=\mk@footerline,
+  feature/.store in=\mk@feature,
+  title/.store in=\mk@title,
+  subtitle/.store in=\mk@subtitle,
+  author/.store in=\mk@author,
+  author-reading/.store in=\mk@authorreading,
+  affiliation/.store in=\mk@affiliation,
+  ornament/.store in=\mk@ornament,
+  ornament-width/.store in=\mk@ornamentwidth,
+  % Opening layouts.  "center" is the issue-opening article: masthead,
+  % centred feature label, centred title and author.  "left" is a feature
+  % article: a ruled feature bar, a flush-left title and an optional
+  % ornament at the outer edge.
+  align/.is choice,
+  align/center/.code={\def\mk@titlealign{center}},
+  align/left/.code={\def\mk@titlealign{left}},
+  title-font/.is choice,
+  title-font/mincho/.code={\def\mk@titleface{\MKTitleFace}},
+  title-font/gothic/.code={\def\mk@titleface{\MKGothicTitleFace}},
+  masthead/.is choice,
+  masthead/true/.code={\def\mk@masthead@wanted{true}},
+  masthead/false/.code={\def\mk@masthead@wanted{false}},
+  masthead/.default=true,
+  feature-bar/.is choice,
+  feature-bar/true/.code={\def\mk@featurebar@wanted{true}},
+  feature-bar/false/.code={\def\mk@featurebar@wanted{false}},
+  feature-bar/.default=true,
+  feature-rule-width/.code={\setlength{\mk@featurerulewidth}{#1}},
+  section-style/.is choice,
+  section-style/bar/.code={\def\mk@sectionstyle{bar}},
+  section-style/pillars/.code={\def\mk@sectionstyle{pillars}},
+  section-style/band/.code={\def\mk@sectionstyle{band}},
+  section-style/plain/.code={\def\mk@sectionstyle{plain}},
+  footer-placement/.is choice,
+  footer-placement/odd/.code={\def\mk@footerplacement{odd}},
+  footer-placement/both/.code={\def\mk@footerplacement{both}},
+  footer-placement/none/.code={\def\mk@footerplacement{none}},
+}
+
+\NewDocumentCommand{\MathKaisetsuSetup}{m}{%
+  \pgfkeys{/surikumi-kaisetsu,#1}%
+}
+
+% ---------------------------------------------------------------------------
+% 5. Masthead
+% ---------------------------------------------------------------------------
+% Issue date on the inner side, issue number on the outer side, the review's
+% own Latin name between them, and a rule underneath.  The two Latin lines
+% are centred on the measure; the flanking lines are centred against them.
+
+\newcommand{\mk@mastheadside}[2]{%
+  \parbox[c]{.26\textwidth}{%
+    \MKMastheadFace
+    \fontsize{\mk@mastheadsidesize}{\mk@mastheadsideleading}\selectfont
+    \color{SMink}%
+    #1 #2}%
+}
+
+\NewDocumentCommand{\MKMasthead}{}{%
+  \begingroup
+  \setlength{\parindent}{0pt}%
+  \noindent\makebox[\textwidth]{%
+    \mk@mastheadside{\raggedright}{\mk@issuedate}%
+    \hfill
+    \parbox[c]{.44\textwidth}{%
+      \centering
+      \MKMastheadFace
+      \fontsize{\mk@mastheadsize}{\mk@mastheadleading}\selectfont
+      \color{SMink}%
+      \mk@mastheadfirst\par
+      \mk@mastheadsecond}%
+    \hfill
+    \mk@mastheadside{\raggedleft}{\mk@issuenumber}%
+  }\par
+  \vspace{1.6mm}%
+  \noindent{\color{SMink}\rule{\textwidth}{.5pt}}\par
+  \endgroup
+}
+
+% ---------------------------------------------------------------------------
+% 6. Feature label
+% ---------------------------------------------------------------------------
+% Two forms.  The plain form is centred above an issue-opening title; the
+% barred form is a flush-left label between a hairline and a heavy rule, and
+% marks the opening page of a feature article.
+
+\NewDocumentCommand{\MKFeatureLabel}{m}{%
+  {\MKHeadingFace
+   \fontsize{\mk@featuresize}{\mk@featureleading}\selectfont
+   \color{SMink}#1}%
+}
+
+\NewDocumentCommand{\MKFeatureBar}{O{\mk@featurerulewidth} m}{%
+  \begingroup
+  \setlength{\parindent}{0pt}%
+  \noindent{\color{SMink}\rule{#1}{\mk@featurethin}}\par
+  \vspace{.7mm}%
+  \noindent\MKFeatureLabel{#2}\par
+  \vspace{.9mm}%
+  \noindent{\color{SMink}\rule{#1}{\mk@featurethick}}\par
+  \endgroup
+}
+
+% ---------------------------------------------------------------------------
+% 7. Article opening
+% ---------------------------------------------------------------------------
+
+\newcommand{\mk@titletext}{%
+  {\mk@titleface
+   \fontsize{\mk@titlesize}{\mk@titleleading}\selectfont
+   \color{SMink}\mk@title\par}%
+  \ifdefempty{\mk@subtitle}{}{%
+    \vspace{1.4mm}%
+    {\MKHeadingFace
+     \fontsize{\mk@subtitlesize}{\mk@subtitleleading}\selectfont
+     \color{SMink}\mk@subtitle\par}%
+  }%
+}
+
+\newcommand{\mk@authortext}{%
+  {\mk@titleface
+   \fontsize{\mk@authorsize}{\mk@authorleading}\selectfont
+   \color{SMink}\mk@author\par}%
+}
+
+% A name is spaced by one zenkaku between family and given name, as printed
+% credits normally are.  \MKName{江沢}{洋} keeps that spacing consistent.
+\NewDocumentCommand{\MKName}{m m}{#1\hspace{1\zw}#2}
+
+\newcommand{\mk@opening@center}{%
+  \centering
+  \ifdefempty{\mk@feature}{}{%
+    \MKFeatureLabel{\mk@feature}\par
+    \vspace{8mm}%
+  }%
+  \mk@titletext
+  \vspace{12mm}%
+  \mk@authortext
+  \vspace{3mm}%
+}
+
+% The opening copy takes the whole measure when no ornament is supplied,
+% and makes room for one at the outer edge when it is.  Both columns are
+% aligned on their top edges, which is where an ornament belongs.
+\newcommand{\mk@opening@copy}{%
+  \setlength{\parindent}{0pt}%
+  \raggedright
+  \ifdefempty{\mk@feature}{}{%
+    \ifdefstring{\mk@featurebar@wanted}{true}{%
+      \MKFeatureBar{\mk@feature}%
+      \vspace{7mm}%
+    }{%
+      \MKFeatureLabel{\mk@feature}\par
+      \vspace{4mm}%
+    }%
+  }%
+  \mk@titletext
+  \vspace{8mm}%
+  \mk@authortext
+}
+
+\newcommand{\mk@opening@left}{%
+  \ifdefempty{\mk@ornament}{%
+    \noindent
+    \begin{minipage}{\textwidth}
+      \mk@opening@copy
+    \end{minipage}%
+  }{%
+    \noindent
+    \begin{minipage}[t]{\dimexpr\textwidth-\mk@ornamentwidth-6mm\relax}
+      \vspace{0pt}%
+      \mk@opening@copy
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{\mk@ornamentwidth}
+      \vspace{0pt}%
+      \raggedleft
+      \mk@ornament
+    \end{minipage}%
+  }%
+  \par
+  \vspace{2mm}%
+}
+
+\newcommand{\mk@titleblock}{%
+  \begin{minipage}{\textwidth}
+    \setlength{\parindent}{0pt}%
+    \ifdefstring{\mk@masthead@wanted}{true}{%
+      \MKMasthead
+      \vspace{10mm}%
+    }{}%
+    \ifdefstring{\mk@titlealign}{left}{\mk@opening@left}{\mk@opening@center}%
+    \vspace{4mm}%
+  \end{minipage}%
+}
+
+% Print the full-width opening and enter (or re-enter) the two-column output
+% routine.  As with \MakeMathMagazineTitle, this command ends the preceding
+% article itself; no \clearpage belongs immediately before it.
+\NewDocumentCommand{\MKMakeTitle}{}{%
+  \ifsmag@twocolumn
+    \if@twocolumn
+      \onecolumn
+    \fi
+    \twocolumn[\mk@titleblock]%
+  \else
+    \noindent\mk@titleblock
+  \fi
+  \thispagestyle{surikumikaisetsu}%
+}
+
+% Opening for an article that starts part-way down a page rather than on a
+% fresh one is not part of this format; a review article always opens a page.
+
+% ---------------------------------------------------------------------------
+% 8. Section headings
+% ---------------------------------------------------------------------------
+% Four rules-and-pillars variants.  `bar` puts a hairline across the measure
+% and a heavy pillar beside the heading; `pillars` centres the heading
+% between two pillars; `band` adds the hairlines above and below as well;
+% `plain` is the heading alone.
+
+\newcounter{mksection}
+\newcounter{mksubsection}[mksection]
+\renewcommand{\themksection}{\arabic{mksection}}
+\renewcommand{\themksubsection}{\arabic{mksection}.\arabic{mksubsection}}
+
+\newcommand{\mk@pillar}{%
+  \begingroup
+  \fontsize{\mk@sectionsize}{\mk@sectionleading}\selectfont
+  \raisebox{\mk@pillarraise}{%
+    \color{SMink}\rule{\mk@pillarwidth}{\mk@pillarheight}}%
+  \endgroup
+}
+
+\newcommand{\mk@measurerule}{%
+  \noindent{\color{SMink}\rule{\linewidth}{\mk@sectionrule}}\par
+}
+
+\newcommand{\mk@sectionfont}{%
+  \MKHeadingFace
+  \fontsize{\mk@sectionsize}{\mk@sectionleading}\selectfont
+  \color{SMink}%
+}
+
+\newcommand{\mk@sechead@plain}[1]{%
+  \noindent{\mk@sectionfont #1}\par
+}
+
+\newcommand{\mk@sechead@bar}[1]{%
+  \mk@measurerule
+  \nobreak\vspace{\mk@sectiongap}%
+  \noindent
+  \hangindent=\dimexpr\mk@pillarwidth+\mk@pillarsep\relax
+  \hangafter=1
+  \mk@pillar\hspace{\mk@pillarsep}%
+  {\mk@sectionfont #1}\par
+}
+
+% A heading that fits is centred between the pillars; one that does not is
+% set as a centred block of the remaining measure, so a long section title
+% wraps instead of running past the pillar.
+\newsavebox{\mk@headbox}
+\newlength{\mk@headroom}
+
+\newcommand{\mk@sechead@pillars}[1]{%
+  \sbox\mk@headbox{\mk@sectionfont #1}%
+  \setlength{\mk@headroom}{\dimexpr\linewidth-2\mk@pillarwidth-2em\relax}%
+  \ifdim\wd\mk@headbox>\mk@headroom
+    \noindent
+    \mk@pillar\hfill
+    \parbox[t]{\mk@headroom}{\centering\mk@sectionfont #1}%
+    \hfill\mk@pillar\par
+  \else
+    \noindent\makebox[\linewidth]{%
+      \mk@pillar\hfil\usebox\mk@headbox\hfil\mk@pillar}\par
+  \fi
+}
+
+\newcommand{\mk@sechead@band}[1]{%
+  \mk@measurerule
+  \nobreak\vspace{\mk@sectiongap}%
+  \nobreak\mk@sechead@pillars{#1}%
+  \nobreak\vspace{\mk@sectiongap}%
+  \nobreak\mk@measurerule
+}
+
+\newcommand{\mk@sectionhead}[1]{%
+  \ifdefstring{\mk@currentsectionstyle}{pillars}{\mk@sechead@pillars{#1}}{%
+    \ifdefstring{\mk@currentsectionstyle}{band}{\mk@sechead@band{#1}}{%
+      \ifdefstring{\mk@currentsectionstyle}{plain}{\mk@sechead@plain{#1}}{%
+        \mk@sechead@bar{#1}%
+      }%
+    }%
+  }%
+}
+
+% \MKSection[style]{text} overrides the document-wide style for one heading.
+% The starred form is unnumbered and leaves the equation numbers alone.
+\NewDocumentCommand{\MKSection}{s O{} m}{%
+  \par
+  % As with the standard sectioning commands, a column break just before a
+  % heading is preferable to one just after it.
+  \addpenalty{\@secpenalty}%
+  \addvspace{1.4\baselineskip}%
+  \IfBooleanF{#1}{\refstepcounter{mksection}}%
+  \def\mk@currentsectionstyle{#2}%
+  \ifdefempty{\mk@currentsectionstyle}{%
+    \let\mk@currentsectionstyle\mk@sectionstyle
+  }{}%
+  \mk@sectionhead{%
+    \IfBooleanF{#1}{\themksection.\hspace{.55em}}#3}%
+  \par\nobreak\addvspace{.45\baselineskip}%
+}
+
+\NewDocumentCommand{\MKSubsection}{s m}{%
+  \par\addvspace{.4\baselineskip}%
+  \IfBooleanF{#1}{\refstepcounter{mksubsection}}%
+  \noindent\hspace*{1\zw}%
+  {\MKHeadingFace
+   \fontsize{\mk@subsectionsize}{\mk@subsectionleading}\selectfont
+   \color{SMink}%
+   \IfBooleanF{#1}{\themksubsection\hspace{.55em}}#2}%
+  \par\nobreak\addvspace{.1\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 9. Equation numbers
+% ---------------------------------------------------------------------------
+% (1.1), (1.2), ... restart in every numbered section, as in the reference
+% format.  eqnumbering=continuous or =none are available for articles that
+% do not want section-tied numbers.
+
+\newcommand{\mk@eqnumbering@section}{%
+  \counterwithin*{equation}{mksection}%
+  \renewcommand{\theequation}{\arabic{mksection}.\arabic{equation}}%
+}
+\newcommand{\mk@eqnumbering@continuous}{%
+  \counterwithout*{equation}{mksection}%
+  \renewcommand{\theequation}{\arabic{equation}}%
+}
+
+\NewDocumentCommand{\MKEquationNumbering}{m}{%
+  \ifstrequal{#1}{section}{\mk@eqnumbering@section}{%
+    \ifstrequal{#1}{continuous}{\mk@eqnumbering@continuous}{%
+      \ifstrequal{#1}{none}{}{%
+        \PackageWarning{surikumi-kaisetsu}%
+          {Unknown equation numbering '#1'; using section}%
+        \mk@eqnumbering@section
+      }%
+    }%
+  }%
+}
+
+\AtBeginDocument{%
+  \ifdefstring{\mk@eqnumbering}{none}{}{%
+    \expandafter\MKEquationNumbering\expandafter{\mk@eqnumbering}%
+  }%
+}
+
+% ---------------------------------------------------------------------------
+% 10. Notes at the foot of the column
+% ---------------------------------------------------------------------------
+% Marks are *1), *2), ... : a star keeps them apart from the reference
+% numbers 1), 2), ... that share the same column.  The note itself repeats
+% the mark on the baseline and hangs the rest of the text past it.
+
+\ifmk@footnotes
+  \renewcommand{\thefootnote}{*\arabic{footnote})}
+  \renewcommand{\@makefnmark}{%
+    \hbox{\textsuperscript{\normalfont\@thefnmark}}%
+  }
+  % The hanging indent is the width of the mark itself, so that a note of
+  % any length keeps one straight left edge under its own *n).
+  \long\def\@makefntext#1{%
+    \fontsize{\mk@footnotesize}{\mk@footnoteleading}\selectfont
+    \setlength{\parindent}{1\zw}%
+    \settowidth{\mk@footnotehang}{\normalfont\@thefnmark\hspace{.35em}}%
+    \hangindent=\mk@footnotehang
+    \hangafter=1
+    \noindent
+    \hb@xt@\mk@footnotehang{\normalfont\@thefnmark\hfil}%
+    \ignorespaces#1%
+  }
+  \renewcommand{\footnoterule}{%
+    \kern-2.6pt
+    {\color{SMink}\hrule width .42\columnwidth height .4pt}%
+    \kern 2.2pt
+  }
+  \setlength{\skip\footins}{4.2mm plus 1mm minus .4mm}
+  \setlength{\footnotesep}{6.6pt}
+  \interfootnotelinepenalty=10000
+\fi
+
+% A note that carries no mark in the running text, used for an editorial
+% aside at the foot of the column.
+\NewDocumentCommand{\MKUnmarkedNote}{m}{%
+  \begingroup
+  \renewcommand{\thefootnote}{}%
+  \footnotetext{#1}%
+  \endgroup
+}
+
+% ---------------------------------------------------------------------------
+% 11. Reference marks and reference list
+% ---------------------------------------------------------------------------
+% \MKCite{3} prints 3) as a superscript; \MKCite{1,2} prints 1,2).  With
+% \label inside mkreferences, \MKCite{\ref{ref:dirac}} tracks renumbering.
+
+\NewDocumentCommand{\MKCite}{m}{%
+  \textsuperscript{\normalfont #1)}%
+}
+
+\newlist{mkreflist}{enumerate}{1}
+\setlist[mkreflist]{
+  label={\arabic*)},
+  ref=\arabic*,
+  align=left,
+  leftmargin=1.95em,
+  labelsep=.35em,
+  labelwidth=1.6em,
+  topsep=0pt,
+  partopsep=0pt,
+  parsep=0pt,
+  itemsep=.12\baselineskip
+}
+
+\newcommand{\mk@blockheading}[1]{%
+  \noindent{\color{SMink}\rule{\linewidth}{.4pt}}\par\nobreak
+  \vspace{.8mm}%
+  \noindent\makebox[\linewidth]{%
+    \MKHeadingFace
+    \fontsize{\mk@smallsize}{\mk@smallleading}\selectfont
+    \color{SMink}#1}\par\nobreak
+  \vspace{1.1mm}%
+}
+
+\NewDocumentEnvironment{mkreferences}{O{参考文献}}{%
+  \par\addvspace{.9\baselineskip}%
+  \mk@blockheading{#1}%
+  \begingroup
+  \fontsize{\mk@smallsize}{\mk@smallleading}\selectfont
+  \begin{mkreflist}%
+}{%
+  \end{mkreflist}%
+  \endgroup
+  \par\addvspace{.5\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 12. Closing byline
+% ---------------------------------------------------------------------------
+% （よみ，所属）flush right at the end of the article.
+
+\newcommand{\mk@bylinebody}[1]{%
+  \par\addvspace{.7\baselineskip}%
+  \noindent\hfill
+  {\MKBodyFace\fontsize{\mk@smallsize}{\mk@smallleading}\selectfont
+   \color{SMink}（#1）}%
+  \par
+}
+
+\NewDocumentCommand{\MKBylineText}{m}{\mk@bylinebody{#1}}
+
+\NewDocumentCommand{\MKByline}{}{%
+  \ifdefempty{\mk@authorreading}{%
+    \ifdefempty{\mk@affiliation}{%
+      \PackageWarning{surikumi-kaisetsu}%
+        {\string\MKByline\space needs author-reading or affiliation}%
+    }{%
+      \mk@bylinebody{\mk@affiliation}%
+    }%
+  }{%
+    \ifdefempty{\mk@affiliation}{%
+      \mk@bylinebody{\mk@authorreading}%
+    }{%
+      \mk@bylinebody{\mk@authorreading，\mk@affiliation}%
+    }%
+  }%
+}
+
+% ---------------------------------------------------------------------------
+% 13. Captions
+% ---------------------------------------------------------------------------
+% 図 1 / 表 1 in the heading face, one zenkaku of space, then the caption in
+% the body face at note size, set to the measure.
+
+\ifmk@captions
+  \long\def\@makecaption#1#2{%
+    \vskip\abovecaptionskip
+    \begingroup
+      \MKBodyFace
+      \fontsize{\mk@captionsize}{\mk@captionleading}\selectfont
+      \color{SMink}%
+      \setlength{\parindent}{0pt}%
+      \noindent{\MKHeadingFace #1}\hspace{\mk@captionlabelsep}#2\par
+    \endgroup
+    \vskip\belowcaptionskip
+  }
+  \setlength{\abovecaptionskip}{2.2mm}
+  \setlength{\belowcaptionskip}{0mm}
+\fi
+
+% A figure whose artwork sits above its caption, centred on the measure.
+\NewDocumentEnvironment{mkfigurebody}{}{%
+  \par\centering
+}{%
+  \par
+}
+
+% ---------------------------------------------------------------------------
+% 14. Run-in labels, remarks and quotations
+% ---------------------------------------------------------------------------
+
+\NewDocumentCommand{\MKRunIn}{m}{%
+  {\MKHeadingFace\color{SMink}#1}\nobreak\hspace{.65em}%
+}
+
+% 注意, 定義, 例 ... : a labelled paragraph whose body is ordinary text.
+\NewDocumentEnvironment{mkremark}{O{注意}}{%
+  \par\addvspace{.45\baselineskip}%
+  \noindent\MKRunIn{#1}\ignorespaces
+}{%
+  \par\addvspace{.45\baselineskip}%
+}
+
+\NewDocumentCommand{\MKRemark}{O{注意} +m}{%
+  \begin{mkremark}[#1]#2\end{mkremark}%
+}
+
+% A quotation from a source, indented by one zenkaku on the left.
+\NewDocumentEnvironment{mkquote}{}{%
+  \par\addvspace{.4\baselineskip}%
+  \begin{list}{}{%
+    \setlength{\leftmargin}{1\zw}%
+    \setlength{\rightmargin}{0pt}%
+    \setlength{\listparindent}{1\zw}%
+    \setlength{\itemindent}{1\zw}%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\itemsep}{0pt}%
+  }%
+  \item\relax
+}{%
+  \end{list}%
+  \addvspace{.4\baselineskip}%
+}
+
+% ---------------------------------------------------------------------------
+% 15. Chronology
+% ---------------------------------------------------------------------------
+% A dated list ruled above and below, of the kind that accompanies a
+% biographical article.  It breaks across columns if it has to.
+
+\NewDocumentEnvironment{mkchronology}{m}{%
+  \par\addvspace{.7\baselineskip}%
+  \begingroup
+  \fontsize{\mk@smallsize}{\mk@smallleading}\selectfont
+  \noindent{\color{SMink}\rule{\linewidth}{.5pt}}\par\nobreak
+  \vspace{.9mm}%
+  \noindent\makebox[\linewidth]{\MKBodyFace\color{SMink}#1}\par\nobreak
+  \vspace{.9mm}%
+  \noindent{\color{SMink}\rule{\linewidth}{.4pt}}\par\nobreak
+  \vspace{1.2mm}%
+  \begin{list}{}{%
+    \setlength{\leftmargin}{\mk@chronoyear}%
+    \setlength{\labelwidth}{\dimexpr\mk@chronoyear-.5em\relax}%
+    \setlength{\labelsep}{.5em}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\listparindent}{0pt}%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\itemsep}{.15\baselineskip}%
+    \renewcommand{\makelabel}[1]{##1\hfil}%
+  }%
+}{%
+  \end{list}%
+  \vspace{1.1mm}%
+  \noindent{\color{SMink}\rule{\linewidth}{.5pt}}\par
+  \endgroup
+  \addvspace{.7\baselineskip}%
+}
+
+\NewDocumentCommand{\MKChronoItem}{m m}{\item[#1]#2}
+
+% ---------------------------------------------------------------------------
+% 16. Ruled inserts
+% ---------------------------------------------------------------------------
+% A framed block that spans one column, and a float that spans both columns
+% at the foot of the page.  stfloats is what allows [b] on a starred float.
+
+\RequirePackage{stfloats}
+
+\NewDocumentEnvironment{mkinsert}{}{%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=SMink,
+    boxrule=.7pt,
+    sharp corners,
+    left=3mm,
+    right=3mm,
+    top=2.4mm,
+    bottom=2.6mm,
+    before skip=.6\baselineskip,
+    after skip=.6\baselineskip
+  ]%
+}{%
+  \end{tcolorbox}%
+}
+
+% A float cannot break, so the double-column form is deliberately not
+% breakable; an insert too tall for one page belongs in the body instead.
+\NewDocumentEnvironment{mkfullinsert}{O{b}}{%
+  \begin{figure*}[#1]%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=white,
+    colframe=SMink,
+    boxrule=.7pt,
+    sharp corners,
+    left=3mm,
+    right=3mm,
+    top=2.4mm,
+    bottom=2.6mm,
+    before skip=0pt,
+    after skip=0pt
+  ]%
+}{%
+  \end{tcolorbox}%
+  \end{figure*}%
+}
+
+% ---------------------------------------------------------------------------
+% 17. Running foot
+% ---------------------------------------------------------------------------
+% The page number sits in the outer corner.  The issue line sits in the
+% inner corner of recto pages by default, which is where a monthly usually
+% carries it; footer-placement=both mirrors it onto verso pages as well.
+
+\newcommand{\mk@defaultfooterline}{%
+  {\MKHeadingFace\mk@journalname}\hspace{.7em}%
+  {\MKMastheadFace\mk@issuenumber，\MakeUppercase{\mk@issuedate}}%
+}
+
+\newcommand{\mk@footerlinebox}{%
+  \begingroup
+  \fontsize{\mk@footerlinesize}{\mk@footerlineleading}\selectfont
+  \color{SMink}%
+  \ifdefempty{\mk@footerline}{\mk@defaultfooterline}{\mk@footerline}%
+  \endgroup
+}
+
+\newcommand{\mk@pagenumberbox}{%
+  {\MKPageNumberFace
+   \fontsize{\mk@pagenumbersize}{\mk@pagenumberleading}\selectfont
+   \color{SMink}\thepage}%
+}
+
+\newcommand{\mk@footerlineodd}{%
+  \ifdefstring{\mk@footerplacement}{none}{}{\mk@footerlinebox}%
+}
+\newcommand{\mk@footerlineeven}{%
+  \ifdefstring{\mk@footerplacement}{both}{\mk@footerlinebox}{}%
+}
+
+\ifmk@footer
+  \fancypagestyle{surikumikaisetsu}{%
+    \fancyhf{}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}%
+    \if@twoside
+      \fancyfoot[LO]{\mk@footerlineodd}%
+      \fancyfoot[RO]{\mk@pagenumberbox}%
+      \fancyfoot[LE]{\mk@pagenumberbox}%
+      \fancyfoot[RE]{\mk@footerlineeven}%
+    \else
+      \fancyfoot[L]{\mk@footerlineodd}%
+      \fancyfoot[R]{\mk@pagenumberbox}%
+    \fi
+  }
+  \AtBeginDocument{\pagestyle{surikumikaisetsu}}
+\else
+  \fancypagestyle{surikumikaisetsu}{}
+\fi
+
+% ---------------------------------------------------------------------------
+% 18. Per-article reset
+% ---------------------------------------------------------------------------
+% One file usually holds several articles of one issue.  Sections, notes,
+% figures, tables and equations all restart with each of them.
+
+\NewDocumentCommand{\MKArticleReset}{}{%
+  \setcounter{mksection}{0}%
+  \setcounter{mksubsection}{0}%
+  \setcounter{footnote}{0}%
+  \setcounter{equation}{0}%
+  \setcounter{figure}{0}%
+  \setcounter{table}{0}%
+}
+
+% ---------------------------------------------------------------------------
+% 19. Body text
+% ---------------------------------------------------------------------------
+% surikumi sets the compact study-magazine measure in its own
+% \AtBeginDocument hook.  This one runs afterwards and installs the review
+% measure, then recomputes the display skips that hang off \baselineskip.
+
+% Floats reset the font with \reset@font\normalsize, and the class still
+% defines \normalsize at its own base size.  Left alone, a figure, a table
+% or a double-column insert would come out one step larger than the running
+% text.  The standard size commands are therefore rebuilt around the review
+% measure, keeping their usual proportions.
+
+\newlength{\mk@bodysizelen}
+\newlength{\mk@leadinglen}
+
+% \normalsize restores the skips around displays from surikumi's rhythm, so
+% the flexibility a flush foot needs has to be restored with them.
+\newcommand{\mk@rhythm}{%
+  \@ifundefined{smag@applyverticalrhythm}{}{\smag@applyverticalrhythm}%
+  \ifmk@flushbottom\mk@makedisplaysflexible\fi
+}
+
+% A flush foot is only reachable if something on the page can give.  The
+% skips around displays are the natural place to put that give: a glue
+% register cannot carry a plus component directly, so each natural size is
+% first copied into a plain dimen.
+\newcommand{\mk@flexibleskip}[2]{%
+  \setlength{\@tempdima}{#1}%
+  \setlength{#1}{\@tempdima plus #2\baselineskip}%
+}
+
+\newcommand{\mk@makedisplaysflexible}{%
+  \mk@flexibleskip{\abovedisplayskip}{.3}%
+  \mk@flexibleskip{\belowdisplayskip}{.3}%
+  \mk@flexibleskip{\abovedisplayshortskip}{.3}%
+  \mk@flexibleskip{\belowdisplayshortskip}{.3}%
+}
+
+\newcommand{\mk@declaresizes}{%
+  \setlength{\mk@bodysizelen}{\mk@bodysize}%
+  \setlength{\mk@leadinglen}{\mk@leading}%
+  \renewcommand{\normalsize}{%
+    \@setfontsize\normalsize{\mk@bodysizelen}{\mk@leadinglen}%
+    \mk@rhythm}%
+  \renewcommand{\small}{%
+    \@setfontsize\small{.92\mk@bodysizelen}{.92\mk@leadinglen}}%
+  \renewcommand{\footnotesize}{%
+    \@setfontsize\footnotesize{.84\mk@bodysizelen}{.86\mk@leadinglen}}%
+  \renewcommand{\scriptsize}{%
+    \@setfontsize\scriptsize{.76\mk@bodysizelen}{.8\mk@leadinglen}}%
+  \renewcommand{\tiny}{%
+    \@setfontsize\tiny{.66\mk@bodysizelen}{.72\mk@leadinglen}}%
+  \renewcommand{\large}{%
+    \@setfontsize\large{1.16\mk@bodysizelen}{1.16\mk@leadinglen}}%
+  \renewcommand{\Large}{%
+    \@setfontsize\Large{1.4\mk@bodysizelen}{1.34\mk@leadinglen}}%
+  \renewcommand{\LARGE}{%
+    \@setfontsize\LARGE{1.7\mk@bodysizelen}{1.58\mk@leadinglen}}%
+  \renewcommand{\huge}{%
+    \@setfontsize\huge{2\mk@bodysizelen}{1.85\mk@leadinglen}}%
+  \renewcommand{\Huge}{%
+    \@setfontsize\Huge{2.4\mk@bodysizelen}{2.15\mk@leadinglen}}%
+}
+
+\AtBeginDocument{%
+  \mk@declaresizes
+  \normalsize
+  \setlength{\parindent}{1\zw}%
+  \setlength{\parskip}{0pt}%
+  \ifmk@layout
+    \setlength{\topskip}{\baselineskip}%
+    \setlength{\textheight}{\mk@lines\baselineskip}%
+  \fi
+  \ifmk@flushbottom
+    \mk@makedisplaysflexible
+    \flushbottom
+  \else
+    \raggedbottom
+  \fi
+}
+
+\makeatother
+
+\endinput

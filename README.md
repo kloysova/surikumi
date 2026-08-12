@@ -15,6 +15,9 @@ LuaLaTeX パッケージである．JIS B5 判・2段組を基本に，講義，
 - 行内式と別行数式で大きさをそろえ，上下限を上下に置く `\sum`
 - `\sum` の字形に自作フォント `SugakuFourier-Math-Extension` を既定で使用
 - TeX で生成する12種類の独自見出しパターン
+- 追加パッケージ `surikumi-kaisetsu.sty` による月刊解説誌の体裁
+  （号の題字，特集の扉，罫を伴う節見出し，節ごとの数式番号，
+  段下の注，年表，参考文献，署名，段抜きの囲み）
 
 ## 必要な環境
 
@@ -75,15 +78,72 @@ TeX Gyre が利用可能な場合は既定書体として使用する．
 `Makefile` が検索パスへ加える．独自のビルド手順を使う場合は，
 `config/.latexmkrc` と同じ環境変数を設定する．
 
+## 解説記事の体裁
+
+月刊の学術解説誌の体裁で記事を組むときは，追加パッケージ
+`surikumi-kaisetsu.sty` を読み込む．本文 9 pt・行送り 14.2 pt，
+1 段 45 行の版面に，号の題字，特集の扉，罫を伴う節見出し，
+`(1.1)` 形式の数式番号，`*1)` 形式の段下の注，年表，参考文献，
+署名，段抜きの囲みを提供する．
+
+```latex
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+\usepackage{surikumi-kaisetsu}
+
+\MathKaisetsuSetup{
+  journal-name={数理組版},
+  masthead-first={SURIKUMI},
+  masthead-second={REVIEW},
+  issue-date={January 2026},
+  issue-number={Number 1},
+  masthead=true,
+  feature={特集／変分原理},
+  title={変分原理の考え方},
+  author={\MKName{数理}{太郎}},
+  author-reading={すうり・たろう},
+  affiliation={数理組版編集部}
+}
+
+\begin{document}
+\MKMakeTitle
+\MKArticleReset
+
+\MKSection{停留値としての運動}
+
+作用積分は
+\begin{equation}
+  S[x]=\int_{t_a}^{t_b}L\bigl(\dot{x}(t),x(t)\bigr)\,\mathrm{d}t
+\end{equation}
+である\footnote{注は段の下に置く．}．
+
+\begin{mkreferences}
+  \item 文献を並べる．
+\end{mkreferences}
+
+\MKByline
+\end{document}
+```
+
+部品の使い分けと鍵の一覧は
+[`docs/kaisetsu-format.md`](docs/kaisetsu-format.md) にまとめている．
+
 ## サンプルのビルド
 
 ```console
 make
 ```
 
-PDF は `build/public/` に生成される．各部品の使い分けは
-[`docs/surikumi-style-guide.md`](docs/surikumi-style-guide.md) を参照する．
-数式・記号の推奨表記は
+PDF は `build/public/` に，解説記事の用例は `build/public/kaisetsu/` に
+生成される．解説記事だけを組むときは次のようにする．
+
+```console
+make kaisetsu
+```
+
+各部品の使い分けは
+[`docs/surikumi-style-guide.md`](docs/surikumi-style-guide.md)，
+解説記事の体裁は [`docs/kaisetsu-format.md`](docs/kaisetsu-format.md) を
+参照する．数式・記号の推奨表記は
 [`docs/notation-style-guide.md`](docs/notation-style-guide.md) にまとめている．
 
 ## ライセンス

@@ -1,0 +1,198 @@
+% 解説記事の部品見本．見出しの四つの型，図表，注，引用，年表，
+% 段抜きの囲み，参考文献，署名，および 1 冊に 2 本の記事を置く場合を示す．
+% 本文は本例のために書き下ろした説明文であり，実在の記事の引用ではない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-kaisetsu}
+
+\MathKaisetsuSetup{
+  journal-name={数理組版},
+  masthead-first={SURIKUMI},
+  masthead-second={REVIEW},
+  issue-date={March 2026},
+  issue-number={Number 3},
+  masthead=true,
+  align=center,
+  section-style=bar,
+  feature={特集／組版の部品},
+  title={解説記事の部品},
+  author={\MKName{数理}{一郎}},
+  author-reading={すうり・いちろう},
+  affiliation={数理組版編集部}
+}
+
+\begin{document}
+
+\MKMakeTitle
+\MKArticleReset
+
+この記事は，\texttt{surikumi-kaisetsu} が用意する紙面部品を一通り並べた見本である．
+見出しの四つの型，図と表の見出し，段の下の注，引用，年表，
+段抜きの囲み，参考文献，署名のそれぞれについて，
+実際の記事と同じ組み方で示す．
+
+\MKSection{見出し}
+
+節見出しには四つの型がある．
+既定は罫と柱を組み合わせた \texttt{bar} で，この見出しがその例である．
+\texttt{section-style} で紙面全体の型を選び，
+\texttt{\string\MKSection[...]} で一つの見出しだけを別の型にできる．
+
+\MKSubsection{小見出し}
+
+小見出しは 1 字下げの位置から始め，
+番号は節番号と組にして \texttt{1.1} の形で付ける．
+番号を付けない見出しには星付き形式を使う．
+
+\MKSubsection*{番号のない小見出し}
+
+星付きの小見出しは番号を進めない．
+節の途中に補足の区切りを置きたいときに使う．
+
+\MKSection[pillars]{柱だけの見出し}
+
+\texttt{pillars} は，段の両端に柱を立てて見出しを中央に置く型である．
+特集記事の扉に続く本文でよく使われる．
+
+\MKSection[band]{罫で囲む見出し}
+
+\texttt{band} は上下に罫を引き，両端に柱を立てる型である．
+節がはっきり切り替わることを示したいときに使う．
+
+\MKSection[plain]{罫のない見出し}
+
+\texttt{plain} は罫も柱も置かない．
+短い記事や，囲みの中で使う．
+
+\MKSection{数式と参照}
+
+数式番号は節ごとに改まり，節番号と組で付く．
+\texttt{eqnumbering=continuous} を指定すると通し番号になる．
+
+\begin{equation}
+  \int_0^1 x^n\,\mathrm{d}x=\dfrac{1}{n+1}
+  \label{eq:power}
+\end{equation}
+
+式\eqref{eq:power} は $n\geq0$ で成り立つ．
+別行数式の末尾に句読点は置かない．
+
+\MKSection{図と表}
+
+図の見出しは図の下に，表の見出しは表の上に置く．
+見出しの番号はゴシック体，本文は明朝体である．
+
+\begin{figure}[t]
+  \begin{mkfigurebody}
+    \begin{tikzpicture}[x=1mm,y=1mm,line width=.5pt]
+      \draw[SMrule,line width=.4pt] (0,0) rectangle (46,22);
+      \draw[SMink] (0,0) -- (46,22);
+      \draw[SMink,densely dashed] (0,22) -- (46,0);
+      \fill[SMink] (23,11) circle (.8);
+      \node[font=\fontsize{6.5}{7}\selectfont,anchor=south west] at (23.8,11.4)
+        {$P$};
+    \end{tikzpicture}
+  \end{mkfigurebody}
+  \caption{長方形の二つの対角線は中点で交わる．
+    図の見出しは図の下に置き，段の幅いっぱいに組む．}
+  \label{fig:diagonal}
+\end{figure}
+
+\begin{table}[b]
+  \caption{見出しの型と用途}
+  \label{tab:styles}
+  \begin{mkfigurebody}
+    \begin{tabular}{ll}
+      \hline
+      型 & 用途 \\
+      \hline
+      \texttt{bar} & 通常の節見出し \\
+      \texttt{pillars} & 特集記事の節見出し \\
+      \texttt{band} & 章が切り替わる位置 \\
+      \texttt{plain} & 短い記事，囲みの中 \\
+      \hline
+    \end{tabular}
+  \end{mkfigurebody}
+\end{table}
+
+図\ref{fig:diagonal} と表\ref{tab:styles} のように，
+本文からは通常の \texttt{\string\ref} で参照する．
+
+\MKSection{注，引用，囲み}
+
+段の下に置く注は \texttt{*1)}，\texttt{*2)} の形で番号を付け，
+本文中の参考文献番号 \texttt{1)}，\texttt{2)} と区別する\footnote{注は
+段の下に集まり，段の幅の一部に引いた罫で本文と分ける．}．
+
+\MKRemark{短い注意は行頭のゴシック体の語で始め，本文はそのまま続ける．}
+
+\begin{mkquote}
+引用は左を 1 字下げる．
+出典からの引用であることが，字下げによって分かる．
+\end{mkquote}
+
+\begin{mkinsert}
+\MKRunIn{囲み}
+段の中に置く囲みは，本文と同じ書体で組み，
+罫で囲むことだけで区別する．
+\end{mkinsert}
+
+\MKSection{年表}
+
+伝記的な記事には，年と事項を並べた表を添える．
+
+\begin{mkchronology}{部品の来歴}
+  \MKChronoItem{1600}{活版による二段組が広まる}
+  \MKChronoItem{1900}{学術誌の体裁がほぼ定まる}
+  \MKChronoItem{2026}{\texttt{surikumi-kaisetsu} を書く}
+\end{mkchronology}
+
+\begin{mkreferences}
+  \item 参考文献は記事の末尾に置き，本文からは肩付きの番号で参照する．
+    \label{ref:first}
+  \item 番号は \texttt{1)}，\texttt{2)} の形で組み，折り返しは番号の右にそろえる．
+\end{mkreferences}
+
+本文からは文献\MKCite{\ref{ref:first}} のように参照する．
+
+\MKByline
+
+% ---------------------------------------------------------------------
+% 同じ冊子の 2 本目の記事．扉の型を変え，カウンターを組み直す．
+% ---------------------------------------------------------------------
+
+\MathKaisetsuSetup{
+  masthead=false,
+  align=left,
+  feature-bar=true,
+  section-style=pillars,
+  feature={特集／組版の部品},
+  title={二本目の記事},
+  subtitle={扉の型を変える},
+  author={\MKName{組版}{二郎}},
+  author-reading={くみはん・じろう},
+  affiliation={数理組版編集部},
+  ornament={}
+}
+
+\MKMakeTitle
+\MKArticleReset
+
+一冊の中に複数の記事を置くときは，記事ごとに
+\texttt{\string\MathKaisetsuSetup} で扉の内容を組み直し，
+\texttt{\string\MKArticleReset} で節，数式，図表，注の番号を 1 に戻す．
+
+\MKSection{番号の振り直し}
+
+この節は 2 本目の記事の第 1 節であり，番号は 1 から始まる．
+
+\begin{equation}
+  \sum_{k=1}^{n}k=\dfrac{n(n+1)}{2}
+\end{equation}
+
+数式番号も \texttt{(1.1)} に戻る．
+注の番号も同じく 1 から始まる\footnote{記事ごとに番号を振り直す．}．
+
+\MKByline
+
+\end{document}
