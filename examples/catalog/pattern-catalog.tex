@@ -1,0 +1,199 @@
+% 総目録（紙見本・背景パターン編）．
+% 31 種の背景パターンを系統ごとに並べ，濃度・色味・寸法の効き方を示す．
+% 扉の帯に敷いた実寸の見え方は examples/magazine/surikumi-patterns.tex にある．
+% 本見本は「どれがどれか」を一覧で引くためのものである．
+\documentclass[lualatex,paper=b5j,fontsize=10pt]{jlreq}
+
+\usepackage[twocolumn=false,footer=false]{surikumi}
+
+% --- 見本用の局所部品 -------------------------------------------------
+\newcommand{\CatName}[1]{{\ttfamily\fontsize{7.4}{9}\selectfont #1}}
+
+\newcommand{\CatHead}[2]{%
+  \par\addvspace{1.1\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{10.5}{12.5}\selectfont #1}%
+  \hspace{.7em}{\color{SMrule}\fontsize{7.6}{9}\selectfont #2}\par
+  \nobreak\vspace{.8mm}%
+  \noindent{\color{SMink}\rule{\linewidth}{.5pt}}\par
+  \nobreak\addvspace{.5\baselineskip}%
+}
+
+\newcommand{\CatUse}[1]{%
+  \par\addvspace{.2\baselineskip}%
+  \noindent{\color{SMrule}\fontsize{7.6}{10}\selectfont #1}\par
+  \nobreak\addvspace{.35\baselineskip}%
+}
+
+% パターン1件．見本と鍵の名前を縦に積む．\MMPatternSwatch は
+% \MathMagazineSetup で選んだパターンと濃度をそのまま使うので，
+% 直前に pattern を差し替えてから呼ぶ．
+% \MMPatternSwatch の幅は TikZ の座標へそのまま入るので，
+% \dimexpr を渡さず，あらかじめ長さへ入れて確定させておく．
+\newlength{\CatCell}
+\setlength{\CatCell}{30mm}
+\newlength{\CatSwatchW}
+\setlength{\CatSwatchW}{27mm}
+
+\newcommand{\CatSwatch}[1]{%
+  \begin{minipage}[t]{\CatCell}
+    \MathMagazineSetup{pattern=#1}%
+    \MMPatternSwatch[13mm]{\CatSwatchW}\par
+    \vspace{.8mm}
+    \CatName{#1}\par
+    \vspace{2.6mm}
+  \end{minipage}\hspace{2mm}%
+}
+
+% 濃度・色味・寸法の比較用．鍵をそのまま見出しにする．
+% 4 枚を 1 行に並べるので，本文幅 154mm に収まる寸法にしておく．
+\newlength{\CatTunedW}
+\setlength{\CatTunedW}{34mm}
+\newcommand{\CatTuned}[2]{%
+  \begin{minipage}[t]{\CatTunedW}
+    \MathMagazineSetup{#1}%
+    \MMPatternSwatch[13mm]{\CatTunedW}\par
+    \vspace{.8mm}
+    \CatName{#2}\par
+    \vspace{2.6mm}
+  \end{minipage}\hspace{1.5mm}%
+}
+
+\MathMagazineSetup{
+  feature={},
+  series={総目録},
+  series-position=left,
+  pattern=asanoha,
+  title={背景パターン31種},
+  author={数理組版},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={記事扉のバナーに敷く背景パターンを，系統ごとに一覧する．いずれも公有の意匠を pgf のパスで独自に作図したもので，参考紙面の図案の複製ではない．}
+}
+
+\begin{document}
+
+\MMTitle
+
+上の帯が \CatName{pattern=asanoha} を実寸で敷いた例である．
+以下の見本はすべて \CatName{\string\MMPatternSwatch} による縮小見本で，
+\CatName{pattern-scale=0.34} を掛けて図柄が1単位分収まるようにしてある．
+実寸の見え方は \CatName{examples/magazine/surikumi-patterns.tex} で確かめる．
+
+\MathMagazineSetup{pattern-scale=0.34}
+
+% =====================================================================
+\CatHead{幾何}{12種}
+
+\CatUse{当初からある系統．タイル寸法は宣言時に固定されており，
+pattern-scale は効かない．}
+
+\noindent
+\CatSwatch{scales}\CatSwatch{triangles}\CatSwatch{diamonds}\CatSwatch{chevrons}\par
+\noindent
+\CatSwatch{weave}\CatSwatch{hexagons}\CatSwatch{pinwheels}\CatSwatch{zigzags}\par
+\noindent
+\CatSwatch{checker}\CatSwatch{parquet}\CatSwatch{origami}\CatSwatch{ribbons}\par
+
+\CatUse{既定は scales である．}
+
+% =====================================================================
+\CatHead{和柄}{10種}
+
+\CatUse{inherently coloured pattern として宣言してあり，タイル内部の階調を
+そのまま出力へ残す．したがって pattern-accent と pattern-tone のうち
+インク色の指定は効かず，白ベールだけが効く．pattern-scale も効かない．}
+
+\noindent
+\CatSwatch{asanoha}\CatSwatch{seigaiha}\CatSwatch{shippou}\CatSwatch{kikkou}\par
+\noindent
+\CatSwatch{sayagata}\CatSwatch{kagome}\CatSwatch{yagasuri}\CatSwatch{tatewaku}\par
+\noindent
+\CatSwatch{mitsukuzushi}\CatSwatch{ajiro}\par
+
+\CatUse{線画の6種（asanoha, seigaiha, shippou, kikkou, sayagata, kagome）が薄く，
+面塗りの4種（yagasuri, tatewaku, mitsukuzushi, ajiro）が濃い．
+白抜きの題字を載せるときは薄い側を選ぶ．}
+
+% =====================================================================
+\CatHead{数学的モチーフ}{9種}
+
+\CatUse{新しい鍵駆動の宣言を使っており，この9種にだけ pattern-scale が効く．}
+
+\noindent
+\CatSwatch{truchet}\CatSwatch{isocubes}\CatSwatch{sierpinski}\CatSwatch{lattice}\par
+\noindent
+\CatSwatch{moire}\CatSwatch{envelopes}\CatSwatch{girih}\CatSwatch{packing}\par
+\noindent
+\CatSwatch{spirals}\par
+
+\CatUse{薄いものから濃いものへ並べると，
+lattice ＜ sierpinski ＜ envelopes ＜ truchet ＜ spirals ＜ packing ＜
+girih ＜ moire ＜ isocubes の順になる．}
+
+% =====================================================================
+\CatHead{濃度}{pattern-tone}
+
+\CatUse{normal が従来の見え方である．題字が読みにくいときだけ pale か light へ落とす．
+strong は白ベールを外すので，題字を載せない帯にだけ使う．}
+
+\noindent
+\CatTuned{pattern=isocubes,pattern-tone=pale}{pattern-tone=pale}%
+\CatTuned{pattern=isocubes,pattern-tone=light}{pattern-tone=light}%
+\CatTuned{pattern=isocubes,pattern-tone=normal}{normal（既定）}%
+\CatTuned{pattern=isocubes,pattern-tone=strong}{pattern-tone=strong}\par
+
+% =====================================================================
+\CatHead{色味}{pattern-accent}
+
+\CatUse{背景の色味だけに使う．本文の色には使わない．
+濃度を落とした状態と組み合わせるのが基本である．}
+
+\noindent
+\CatTuned{pattern=girih,pattern-tone=light,pattern-accent=SMcoverBlue}%
+  {accent=SMcoverBlue}%
+\CatTuned{pattern=sierpinski,pattern-tone=pale,pattern-accent=SMcoverOrange}%
+  {accent=SMcoverOrange}%
+\CatTuned{pattern=truchet,pattern-tone=light,pattern-accent=SMcoverViolet}%
+  {accent=SMcoverViolet}%
+\CatTuned{pattern=lattice,pattern-tone=normal,pattern-accent=SMcoverCyan}%
+  {accent=SMcoverCyan}\par
+
+% =====================================================================
+\CatHead{寸法}{pattern-scale}
+
+\CatUse{数学的モチーフの9種にだけ効く．
+幾何12種と和柄10種へ指定しても黙って無視される（誤りではない）．}
+
+\noindent
+\CatTuned{pattern=moire,pattern-tone=normal,pattern-accent=none,pattern-scale=0.24}%
+  {moire, scale=0.24}%
+\CatTuned{pattern=moire,pattern-scale=0.5}{moire, scale=0.5}%
+\CatTuned{pattern=packing,pattern-scale=0.24}{packing, scale=0.24}%
+\CatTuned{pattern=packing,pattern-scale=0.5}{packing, scale=0.5}\par
+
+% =====================================================================
+\CatHead{バナー以外の部品}{\string\MMPatternRule}
+
+\CatUse{節の区切りに使う細い帯である．高さは省略可能引数で変えられる
+（既定 3.2mm）．見出しの代わりには使わない．}
+
+\MathMagazineSetup{pattern=sayagata,pattern-tone=light,pattern-scale=1}
+
+\MMPatternRule
+
+\CatUse{既定の高さ．}
+
+\MMPatternRule[6mm]
+
+\CatUse{\string\MMPatternRule[6mm]．}
+
+行の中へ置く見本は \CatName{\string\MMPatternSwatch} である．
+\MathMagazineSetup{pattern-scale=0.34}%
+truchet \MathMagazineSetup{pattern=truchet}\MMPatternSwatch{11mm}，
+girih \MathMagazineSetup{pattern=girih}\MMPatternSwatch{11mm}，
+spirals \MathMagazineSetup{pattern=spirals}\MMPatternSwatch{11mm}
+のように使う．短縮名は \CatName{\string\MMPRule} と
+\CatName{\string\MMSwatch} である．
+
+\end{document}

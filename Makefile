@@ -1,6 +1,7 @@
 BUILD_DIR := build/public
 PS_BUILD_DIR := build/public/problem-sets
 KAISETSU_BUILD_DIR := build/public/kaisetsu
+CATALOG_BUILD_DIR := build/public/catalog
 EXAMPLES := \
 	examples/magazine/surikumi-confirmation.tex \
 	examples/magazine/surikumi-patterns.tex \
@@ -14,7 +15,10 @@ PS_PDFS := $(patsubst examples/problem-sets/%.tex,$(PS_BUILD_DIR)/%.pdf,$(PROBLE
 KAISETSU := $(sort $(wildcard examples/kaisetsu/kaisetsu-*.tex))
 KAISETSU_PDFS := $(patsubst examples/kaisetsu/%.tex,$(KAISETSU_BUILD_DIR)/%.pdf,$(KAISETSU))
 
-.PHONY: all check clean problem-sets kaisetsu
+CATALOG := $(sort $(wildcard examples/catalog/*.tex))
+CATALOG_PDFS := $(patsubst examples/catalog/%.tex,$(CATALOG_BUILD_DIR)/%.pdf,$(CATALOG))
+
+.PHONY: all check clean problem-sets kaisetsu catalog
 
 all: $(PDFS) $(KAISETSU_PDFS)
 
@@ -25,7 +29,11 @@ kaisetsu: $(KAISETSU_PDFS)
 # build stays as fast as before; run `make problem-sets` to build them.
 problem-sets: $(PS_PDFS)
 
-check: all problem-sets
+# The printed catalogue: every face, symbol, heading and component set beside
+# its own command name. The paper counterpart of docs/catalog.md.
+catalog: $(CATALOG_PDFS)
+
+check: all problem-sets catalog
 
 $(BUILD_DIR):
 	mkdir -p "$@"
@@ -34,6 +42,9 @@ $(PS_BUILD_DIR):
 	mkdir -p "$@"
 
 $(KAISETSU_BUILD_DIR):
+	mkdir -p "$@"
+
+$(CATALOG_BUILD_DIR):
 	mkdir -p "$@"
 
 # config/.latexmkrc puts the in-project texmf tree on the font and input
@@ -51,6 +62,13 @@ $(KAISETSU_BUILD_DIR)/%.pdf: examples/kaisetsu/%.tex surikumi.sty \
 $(PS_BUILD_DIR)/%.pdf: examples/problem-sets/%.tex surikumi.sty \
 		examples/problem-sets/surikumi-mondaishu.sty | $(PS_BUILD_DIR)
 	TEXINPUTS=.:examples/problem-sets: $(LATEXMK) -outdir="$(PS_BUILD_DIR)" "$<"
+
+# The catalogue shows components from all three packages, so the problem-set
+# additions are on the search path here as well.
+$(CATALOG_BUILD_DIR)/%.pdf: examples/catalog/%.tex surikumi.sty \
+		surikumi-kaisetsu.sty examples/problem-sets/surikumi-mondaishu.sty \
+		| $(CATALOG_BUILD_DIR)
+	TEXINPUTS=.:examples/problem-sets: $(LATEXMK) -outdir="$(CATALOG_BUILD_DIR)" "$<"
 
 clean:
 	rm -rf "$(BUILD_DIR)"

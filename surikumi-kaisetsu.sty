@@ -955,6 +955,32 @@
   \fi
 }
 
+% ---------------------------------------------------------------------------
+% Short names
+% ---------------------------------------------------------------------------
+% Aliases only; see the same section in surikumi.sty for the naming rule.
+% The long names stay canonical and keep working.
+
+\NewCommandCopy{\MKSetup}{\MathKaisetsuSetup}
+\NewCommandCopy{\MKTitle}{\MKMakeTitle}
+\NewCommandCopy{\MKReset}{\MKArticleReset}
+\NewCommandCopy{\MKEqNum}{\MKEquationNumbering}
+\NewCommandCopy{\MKFeat}{\MKFeatureLabel}
+\NewCommandCopy{\MKFeatBar}{\MKFeatureBar}
+% \MKNote is the note that prints no mark in the text; the marked one is
+% the ordinary \footnote, so there is no pair to distinguish here.
+\NewCommandCopy{\MKNote}{\MKUnmarkedNote}
+
+% Wrappers, not \NewEnvironmentCopy; see the note in surikumi.sty.
+\NewDocumentEnvironment{mkchrono}{m}
+  {\begin{mkchronology}{#1}}{\end{mkchronology}}
+\NewDocumentEnvironment{mkrefs}{O{参考文献}}
+  {\begin{mkreferences}[#1]}{\end{mkreferences}}
+\NewDocumentEnvironment{mkfig}{}
+  {\begin{mkfigurebody}}{\end{mkfigurebody}}
+\NewDocumentEnvironment{mkfull}{O{b}}
+  {\begin{mkfullinsert}[#1]}{\end{mkfullinsert}}
+
 \makeatother
 
 \endinput

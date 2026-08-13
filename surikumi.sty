@@ -3178,6 +3178,105 @@
   \begin{mmwideblock}#1\end{mmwideblock}%
 }
 
+% ---------------------------------------------------------------------------
+% Short names
+% ---------------------------------------------------------------------------
+% Every name below is an alias, not a second implementation: it is a copy of
+% the command above it and changes nothing about how the page is set.  The
+% long names remain the canonical ones and keep working, so no existing
+% manuscript has to change.
+%
+% The naming is systematic, so that a short name can be guessed:
+%
+%   MM      the package prefix, unchanged
+%   Com     コメント -- the square mark
+%   Ann     注釈     -- the arrow mark
+%   A       suffix meaning 意欲的な読者向け (advanced); its absence means
+%           全読者向け (general)
+%   Sec/Sub/Run   確認系の節・小節・行頭見出し
+%
+% Only names that carry a redundant qualifier (Confirmation, Magazine,
+% Math/Make, Contest, Pattern) or that are typed constantly are shortened.
+% Names that are already short keep their single form.
+%
+% \NewCommandCopy and \NewEnvironmentCopy are used rather than \let so that
+% the argument signature of an xparse command survives the copy, and so that
+% an accidental clash with an existing name is an error rather than a silent
+% redefinition.
+
+% Setup and whole-page commands.
+\NewCommandCopy{\MMSetup}{\MathMagazineSetup}
+\NewCommandCopy{\MMTitle}{\MakeMathMagazineTitle}
+\NewCommandCopy{\MMCoverSetup}{\MathCoverSetup}
+\NewCommandCopy{\MMCover}{\MakeMathMagazineCover}
+\NewCommandCopy{\MMMockSetup}{\MathMockSetup}
+\NewCommandCopy{\MMMockTitle}{\MakeMathMockTitle}
+\NewCommandCopy{\MMContestSetup}{\MathContestSetup}
+\NewCommandCopy{\MMAnswerSheet}{\MakeMathContestAnswerSheet}
+\NewCommandCopy{\MMInfoSheet}{\MakeMathContestInfoSheet}
+
+% Confirmation-format headings.
+\NewCommandCopy{\MMReset}{\MMConfirmationReset}
+\NewCommandCopy{\MMSec}{\MMConfirmationSection}
+\NewCommandCopy{\MMSub}{\MMConfirmationSubsection}
+\NewCommandCopy{\MMRun}{\MMConfirmationRunInHeading}
+
+% Confirmation-format comments (square) and annotations (arrow).  The A
+% suffix is the advanced-reader form throughout.
+\NewCommandCopy{\MMCom}{\MMConfirmationGeneralComment}
+\NewCommandCopy{\MMComA}{\MMConfirmationAdvancedComment}
+\NewCommandCopy{\MMAnn}{\MMConfirmationGeneralNote}
+\NewCommandCopy{\MMAnnA}{\MMConfirmationAdvancedNote}
+\NewCommandCopy{\MMComMark}{\MMConfirmationStripedMark}
+\NewCommandCopy{\MMComAMark}{\MMConfirmationFilledMark}
+\NewCommandCopy{\MMAnnMark}{\MMConfirmationStripedNoteMark}
+\NewCommandCopy{\MMAnnAMark}{\MMConfirmationFilledNoteMark}
+\NewCommandCopy{\MMProofLabel}{\MMConfirmationProofLabel}
+
+% Environment aliases are written as wrappers rather than with
+% \NewEnvironmentCopy: copying one of the confirmation environments makes
+% the package load hang, so every short environment simply opens and closes
+% the long one and hands the optional argument through unchanged.
+\NewDocumentEnvironment{mmcom}{O{}}
+  {\begin{mmconfirmationgeneralcomment}[#1]}{\end{mmconfirmationgeneralcomment}}
+\NewDocumentEnvironment{mmcoma}{O{}}
+  {\begin{mmconfirmationadvancedcomment}[#1]}{\end{mmconfirmationadvancedcomment}}
+\NewDocumentEnvironment{mmann}{O{}}
+  {\begin{mmconfirmationgeneralnote}[#1]}{\end{mmconfirmationgeneralnote}}
+\NewDocumentEnvironment{mmanna}{O{}}
+  {\begin{mmconfirmationadvancednote}[#1]}{\end{mmconfirmationadvancednote}}
+\NewDocumentEnvironment{mmproof}{O{証明}}
+  {\begin{mmconfirmationproof}[#1]}{\end{mmconfirmationproof}}
+\NewDocumentEnvironment{mmroman}{}
+  {\begin{mmconfirmationroman}}{\end{mmconfirmationroman}}
+
+% Body components typed often enough to be worth a short form.
+\NewCommandCopy{\MMSubhead}{\MMSubheading}
+\NewCommandCopy{\MMCase}{\MMCaseHeading}
+\NewCommandCopy{\MMAlt}{\MMAlternative}
+\NewCommandCopy{\MMLabel}{\MMBlackLabel}
+\NewCommandCopy{\MMSolLabel}{\MMSolutionLabel}
+\NewCommandCopy{\MMExNum}{\MMExerciseNumber}
+\NewCommandCopy{\MMDiff}{\MMDifficulty}
+\NewCommandCopy{\MMDiffItem}{\MMDifficultyItem}
+\NewCommandCopy{\MMFive}{\MMFiveMinuteMark}
+\NewCommandCopy{\MMFormula}{\MMFormulaBox}
+\NewCommandCopy{\MMHead}{\MMRunningHead}
+
+% Patterns.
+\NewCommandCopy{\MMPRule}{\MMPatternRule}
+\NewCommandCopy{\MMSwatch}{\MMPatternSwatch}
+
+% Contest sheets.
+\NewCommandCopy{\MMAssess}{\MMContestAssessment}
+\NewCommandCopy{\MMPostal}{\MMContestPostalBoxes}
+\NewCommandCopy{\MMRuled}{\MMContestRuledLines}
+\NewCommandCopy{\MMCut}{\MMContestCutRule}
+\NewCommandCopy{\MMCell}{\MMContestCellLabel}
+\NewCommandCopy{\MMInfoSec}{\MMContestInfoSection}
+\NewDocumentEnvironment{mmcontest}{O{} m}
+  {\begin{mmcontestproblem}[#1]{#2}}{\end{mmcontestproblem}}
+
 \AtBeginDocument{%
   \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
   \setlength{\parindent}{1em}%

@@ -7,6 +7,10 @@
 
 数式・記号・句読点は，必ず先に [`notation-style-guide.md`](notation-style-guide.md) に従う．本書は，その内容を紙面上でどう構成するかを定める．
 
+書体，記号，見出しの記法，部品の網羅的な索引は [`catalog.md`](catalog.md) にある．本書は使い分けの理由を，`catalog.md` は「何があるか」を扱う．
+
+本書では部品を正式名で書く．すべての長い命令には短い別名があり（`\MMConfirmationGeneralComment` に対する `\MMCom` など），原稿ではどちらを使ってもよい．対応表は [`catalog.md`](catalog.md) の第13章にある．
+
 月刊の学術解説誌の体裁で組む記事には，追加パッケージ `surikumi-kaisetsu.sty` を使う．その部品と規約は [`kaisetsu-format.md`](kaisetsu-format.md) にまとめてある．本書の共通方針は解説記事にも及ぶが，見出し，注，数式番号の形は解説記事のものを使う．
 
 ## 2. 共通する紙面方針

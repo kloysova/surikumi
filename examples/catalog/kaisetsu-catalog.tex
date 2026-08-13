@@ -1,0 +1,282 @@
+% 総目録（紙見本・解説記事編）．surikumi-kaisetsu の部品を，
+% 実際の解説記事と同じ版面で組んだ姿と命令名を並べて示す．
+% surikumi 本体の部品は版面が異なるため surikumi-catalog.pdf にある．
+% 本文の例は本見本のために書き下ろしたものであり，実在の記事の引用ではない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage{surikumi-kaisetsu}
+
+% --- 見本用の局所部品 -------------------------------------------------
+% カタログとしての注釈であり，紙面部品そのものではない．記事本体では使わない．
+\newcommand{\CatName}[1]{{\ttfamily\fontsize{7.6}{9}\selectfont #1}}
+
+\newcommand{\CatLabel}[2]{%
+  \par\addvspace{.5\baselineskip}%
+  \noindent{\MKHeadingFace\fontsize{7.6}{9}\selectfont
+    \color{SMrule}#1}\hspace{.6em}\CatName{#2}\par
+  \nobreak\vspace{.5mm}%
+  \noindent{\color{SMpale}\rule{\linewidth}{.4pt}}\par
+  \nobreak\addvspace{.25\baselineskip}%
+}
+
+\newcommand{\CatUse}[1]{%
+  \par\addvspace{.15\baselineskip}%
+  \noindent{\color{SMrule}\fontsize{7.6}{10}\selectfont #1}\par
+  \nobreak\addvspace{.2\baselineskip}%
+}
+
+% 扉の飾り．参考紙面の図案を写さず，TeX で生成した独自の図形を渡す．
+\newcommand{\CatOrnament}{%
+  \begin{tikzpicture}[x=1mm,y=1mm]
+    \foreach \i in {0,...,6}{
+      \draw[SMink,line width=.35pt]
+        (0,\i*4) -- (30,\i*4);
+    }
+    \foreach \i in {0,...,6}{
+      \draw[SMink,line width=.9pt]
+        (\i*5,0) .. controls (\i*5+2.5,12) .. (\i*5,24);
+    }
+  \end{tikzpicture}%
+}
+
+\MathKaisetsuSetup{
+  journal-name={数理組版},
+  masthead-first={SURIKUMI},
+  masthead-second={REVIEW},
+  issue-date={August 2026},
+  issue-number={Number 8},
+  masthead=true,
+  align=center,
+  section-style=bar,
+  feature={総目録／解説記事の部品},
+  title={解説記事の部品見本},
+  subtitle={},
+  author={\MKName{数理}{太郎}},
+  author-reading={すうり・たろう},
+  affiliation={数理組版編集部}
+}
+
+\begin{document}
+
+\MKMakeTitle
+\MKArticleReset
+
+この見本は \CatName{surikumi-kaisetsu.sty} が用意する部品を，
+実際の記事と同じ版面――本文 9\,pt，行送り 14.2\,pt，1 段 45 行――で
+一通り並べたものである．
+上の扉そのものが \CatName{\string\MKMakeTitle} の \CatName{align=center} の例であり，
+号の巻頭記事に使う型である．
+
+灰色の小見出しと \CatName{等幅の命令名} は，この見本のための注釈であって，
+紙面部品ではない．
+
+命令には短縮名がある．\CatName{\string\MathKaisetsuSetup} は
+\CatName{\string\MKSetup}，\CatName{\string\MKMakeTitle} は
+\CatName{\string\MKTitle}，\CatName{\string\MKArticleReset} は
+\CatName{\string\MKReset} である．どちらで書いても同じものが組まれる．
+全対応表は \CatName{docs/catalog.md} の第13章にある．
+
+\MKSection{見出しの四つの型}
+
+節見出しには四つの型がある．紙面全体の既定は
+\CatName{section-style} で決め，例外だけを
+\CatName{\string\MKSection[型]} で指定する．
+段落ごとの気分で型を変えない．
+いま読んでいるこの見出しが既定の \CatName{bar} である．
+
+\MKSubsection{小見出し}
+
+小見出しは 1 字下げの位置から始まり，番号は節番号と組にして
+\CatName{1.1} の形で付ける．直後の段落も 1 字下げで始まる．
+番号を付けない見出しには星付き形式を使う．
+
+\MKSection[pillars]{pillars ――特集記事の節見出し}
+
+両端の柱の間に中央寄せで置く型である．
+特集の中の記事で使う．
+
+\MKSection[band]{band ――章が切り替わる位置}
+
+上下の罫と両端の柱を持つ，最も強い型である．
+記事の中で話題が大きく変わる位置に限って使う．
+
+\MKSection[plain]{plain ――罫も柱もなし}
+
+短い記事や囲みの中で使う．
+
+\MKSection{行頭の見出しと注意}
+
+\CatLabel{行頭の見出し}{\string\MKRunIn}
+\MKRunIn{注意}行頭にゴシック体の語を置き，本文をそのまま続ける．
+節を立てるほどではない切り替えに使う．
+
+\CatLabel{注意などの段落}{\string\MKRemark，mkremark}
+\MKRemark{「最小」という言い方は歴史的なものである．
+停留値であれば足りる場面が多い．}
+
+\begin{mkremark}[定義]
+複数の段落や別行数式を含むときは環境の形を使う．
+省略可能な引数で行頭の語を変えられる．
+\end{mkremark}
+
+\CatLabel{引用}{mkquote}
+\begin{mkquote}
+引用は左を 1 字下げる．出典は引用のあとの本文で示す．
+\end{mkquote}
+
+\MKSection{数式番号}
+
+既定では節ごとに番号を付け，節が変わると
+\CatName{(1.1)} から数え直す．いまは第 4 節なので，次の式は
+\CatName{(4.1)} になる．
+
+\begin{equation}
+  S[x]=\int_{t_a}^{t_b}L\bigl(\dot{x}(t),x(t)\bigr)\,\mathrm{d}t
+  \label{eq:action}
+\end{equation}
+
+番号を付けるのは本文中で参照する式だけである．
+式\eqref{eq:action} のように参照しない式は
+\CatName{\string\[...\string\]} で組む．
+
+\[
+  \dfrac{\partial L}{\partial x}
+  -\dfrac{\mathrm{d}}{\mathrm{d}t}\dfrac{\partial L}{\partial\dot{x}}=0
+\]
+
+\CatUse{通し番号にするときは \string\MKEquationNumbering\{continuous\}，
+番号を付けないときは \{none\} とする．}
+
+Σ の扱いは \CatName{surikumi} 本体と同じで，行内式
+$S_n=\sum_{k=1}^{n}a_k$ と別行数式
+
+\[
+  S_n=\sum_{k=1}^{n}a_k
+\]
+
+で本体の大きさが等しく，上下限はどちらも真上と真下に置かれる．
+
+\MKSection{注と参考文献}
+
+段の下に置く注は \CatName{*1)} の形で番号を付ける\footnote{これが注である．
+折り返しは番号の右にそろう．}．
+本文中の参考文献番号 \CatName{1)} とは形が違うため，
+同じ段に並んでも取り違えない\footnote{二つ目の注．番号は記事ごとに
+\CatName{\string\MKArticleReset} で 1 から数え直す．}．
+
+本文に印を出さない注もある．
+
+\MKNote{本稿の図はすべて TeX で生成した．}
+
+本文からは肩付きの番号で参照する．
+詳しくは文献\MKCite{\ref{ref:variational}} を見る．
+複数を並べるときは \MKCite{1,2} のようになる．
+
+\MKSection{図と表}
+
+図の見出しは図の下，表の見出しは表の上に置く．
+番号はゴシック体，本文は明朝体で，段の幅いっぱいに組む．
+
+\begin{figure}[t]
+  \begin{mkfig}
+    \begin{tikzpicture}[x=1mm,y=1mm]
+      \draw[SMink,line width=.5pt] (0,0) -- (46,0);
+      \draw[SMink,line width=.9pt]
+        (0,2) .. controls (16,20) and (30,20) .. (46,2);
+      \draw[SMrule,line width=.4pt,dashed]
+        (0,2) .. controls (16,12) and (30,26) .. (46,2);
+      \fill[SMink] (0,2) circle (.7);
+      \fill[SMink] (46,2) circle (.7);
+    \end{tikzpicture}
+  \end{mkfig}
+  \caption{実線が停留経路，破線が近傍の経路である．
+    図の中身は \CatName{mkfigurebody ／ mkfig} で段の中央にそろえる．}
+  \label{fig:paths}
+\end{figure}
+
+図\ref{fig:paths} のように，本文からは通常どおり参照する．
+
+\MKSection*{番号を付けない節}
+
+星付き形式は番号を進めない．付録や補足に使う．
+
+\begin{mkrefs}
+  \item 変分原理に関する解説．\label{ref:variational}
+  \item 解析力学の教科書．
+\end{mkrefs}
+
+\MKByline
+
+% =====================================================================
+% 2 本目の記事．扉の型を align=left に変え，副題と飾りを付ける．
+% \MKMakeTitle が前の記事を締めるので，直前に \clearpage は置かない．
+\MathKaisetsuSetup{
+  masthead=false,
+  align=left,
+  feature-bar=true,
+  section-style=pillars,
+  feature={総目録／扉の型},
+  title={特集記事の扉},
+  subtitle={左寄せの表題と副題，外側の飾り},
+  author={\MKName{数理}{二郎}},
+  author-reading={すうり・じろう},
+  affiliation={数理組版編集部},
+  ornament={\CatOrnament},
+  ornament-width={34mm}
+}
+
+\MKMakeTitle
+\MKArticleReset
+
+この扉が \CatName{align=left} の例である．
+細罫と太罫で挟んだ特集名，左寄せの表題，副題，署名を置き，
+外側に飾りを入れられる．
+特集の中に置く記事に使う．
+
+飾りは文書側で用意する．参考紙面の図案を写さず，
+\CatName{\string\includegraphics} か，TeX で生成した独自の図形を
+\CatName{ornament} に渡す．この扉の飾りも本見本のために描いたものである．
+
+% 段抜きの囲みは浮動体である．紙面の下に置くには，その紙面の組版が
+% 終わる前に宣言しておく必要があるため，ここで declare しておく．
+\begin{mkfull}[b]
+\MKRunIn{段抜きの囲み}\CatName{mkfullinsert} は両段にまたがる囲みで，
+既定では紙面の下に置く．省略可能な引数で位置を指定できる．
+節を立てずに独立した話題を差し込むときに使う．
+浮動体なので，置きたい紙面の組版が終わる前に書いておく．
+\end{mkfull}
+
+\MKSection{節見出しは pillars にしてある}
+
+この記事では \CatName{section-style=pillars} を既定にした．
+記事ごとに \CatName{\string\MathKaisetsuSetup} で組み直せる．
+
+\MKSection{年表と囲み}
+
+\CatLabel{年表}{mkchronology ／ mkchrono，\string\MKChronoItem}
+\begin{mkchrono}{変分法の歩み}
+  \MKChronoItem{1696}{Bernoulli が最速降下線の問題を提示する}
+  \MKChronoItem{1744}{Euler が変分法の一般的な手続きをまとめる}
+  \MKChronoItem{1788}{『解析力学』が刊行される}
+\end{mkchrono}
+
+\CatLabel{段の中の囲み}{mkinsert}
+\begin{mkinsert}
+\MKRunIn{要点}停留値であることと最小であることは別の主張である．
+二階の変分を調べるまでは，どちらとも言えない．
+\end{mkinsert}
+
+\CatUse{段抜きの囲み mkfullinsert は，この紙面の下に置いてある．}
+
+\MKSection{1 冊に複数の記事を置く}
+
+記事ごとに扉の内容を組み直し，\CatName{\string\MKMakeTitle} と
+\CatName{\string\MKArticleReset} を続けて書く．
+\CatName{\string\MKMakeTitle} が前の記事を締めるので，
+その直前に \CatName{\string\clearpage} は置かない．
+注と数式の番号は，この記事でも 1 から数え直されている\footnote{記事が
+変わって最初の注なので \CatName{*1)} に戻っている．}．
+
+\MKByline
+
+\end{document}

@@ -16,6 +16,9 @@
 本書は，その内容を解説記事の紙面へどう配置するかを定める．
 `surikumi.sty` 本体の部品については
 [`surikumi-style-guide.md`](surikumi-style-guide.md) を見る．
+全部品の索引と短縮名の対応表は [`catalog.md`](catalog.md) にある．
+本書では正式名で書くが，`\MathKaisetsuSetup` を `\MKSetup`，
+`\MKMakeTitle` を `\MKTitle` のように短く書いてもよい．
 
 ## 2. 読み込み
 

@@ -1,0 +1,516 @@
+% 総目録（紙見本）．surikumi と surikumi-mondaishu の部品を，
+% 実際に組んだ姿と命令名を並べて示す．docs/catalog.md の紙の対応物である．
+% 背景パターン31種は pattern-catalog.tex，解説記事の部品は
+% kaisetsu-catalog.tex にある（いずれも版面が異なるため別冊にした）．
+% 本文の例は本見本のために書き下ろしたものであり，実在の記事の引用ではない．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+% 可読性レイヤの見た目を変える三つのオプションを有効にして，
+% 柱・段間罫・和欧間アキが効いた状態を同時に示す．
+% surikumi 側のオプションを変えるときは，本体を先に読み込む．
+% surikumi-mondaishu は自分のオプションを持たないため，
+% ここへ渡すと未知のオプションとして拒否される．
+\usepackage[runninghead,columnrule,interspacing]{surikumi}
+\usepackage{surikumi-mondaishu}
+
+% --- 見本用の局所部品 -------------------------------------------------
+% カタログとしての注釈を，紙面部品そのものと取り違えないための表示である．
+% 記事本体では使わない．
+\newcommand{\CatName}[1]{{\ttfamily\fontsize{7}{8.4}\selectfont #1}}
+
+\newcommand{\CatLabel}[2]{%
+  \par\addvspace{.55\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.6}{9}\selectfont
+    \color{SMrule}#1}\hspace{.6em}\CatName{#2}\par
+  \nobreak\vspace{.5mm}%
+  \noindent{\color{SMpale}\rule{\linewidth}{.4pt}}\par
+  \nobreak\addvspace{.28\baselineskip}%
+}
+
+% 短縮名を併記する版．正式名と短縮名の対応をその場で示す．
+\newcommand{\CatBoth}[3]{%
+  \par\addvspace{.55\baselineskip}%
+  \noindent{\sffamily\gtfamily\bfseries\fontsize{7.6}{9}\selectfont
+    \color{SMrule}#1}\hspace{.6em}\CatName{#2}%
+  \hspace{.5em}{\color{SMrule}\fontsize{7}{8.4}\selectfont ／}\hspace{.35em}%
+  \CatName{#3}\par
+  \nobreak\vspace{.5mm}%
+  \noindent{\color{SMpale}\rule{\linewidth}{.4pt}}\par
+  \nobreak\addvspace{.28\baselineskip}%
+}
+
+\newcommand{\CatUse}[1]{%
+  \par\addvspace{.18\baselineskip}%
+  \noindent{\color{SMrule}\fontsize{7}{9}\selectfont #1}\par
+  \nobreak\addvspace{.2\baselineskip}%
+}
+
+% 色見本．
+\newcommand{\CatColour}[2]{%
+  \noindent
+  \tikz[baseline=-.55ex]\draw[fill=#1,draw=SMrule,line width=.3pt]
+    (0,0) rectangle (7mm,3mm);%
+  \hspace{.5em}\CatName{#1}\hfill{\fontsize{7}{9}\selectfont #2}\par
+  \vspace{.35mm}%
+}
+
+\MMSetup{
+  feature={},
+  series={総目録},
+  series-position=left,
+  pattern=asanoha,
+  pattern-tone=light,
+  title={書体・記号・部品の見本},
+  author={数理組版},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={このプロジェクトが持つ書体，記号，見出しの記法，紙面部品を一通り並べた見本である．各項目には正式名と短縮名を添えてある．使い分けの理由は docs/catalog.md と docs/surikumi-style-guide.md に書いてある．}
+}
+
+\MMRunningHead[総目録]{書体・記号・部品の見本}
+
+\begin{document}
+
+\MMTitle
+\MMReset
+
+この見本は \CatName{surikumi.sty} と
+\CatName{surikumi-mondaishu.sty} の部品を対象とする．
+背景パターン31種は \CatName{pattern-catalog.pdf}，
+解説記事の部品は \CatName{kaisetsu-catalog.pdf} にある．
+どちらも版面が異なるため別冊にした．
+
+灰色の小見出しと \CatName{等幅の命令名} は，この見本のための注釈であり，
+紙面部品ではない．小見出しに二つ名前が並ぶときは，
+左が正式名，右が短縮名である．
+どちらで書いても同じものが組まれる．
+
+この紙面自体が \CatName{runninghead}，\CatName{columnrule}，
+\CatName{interspacing} を有効にした例である．2ページ目以降の上に柱が出て，
+段の間に細い罫が入り，和文と欧文のアキがそろっている．
+
+% =====================================================================
+\MMSec{書体}
+
+本文は明朝，見出しはゴシックである．書体を変えるのは見出しとラベルだけで，
+本文，答案，場合分け，注記はすべて同じ明朝・通常ウェイト・同じ大きさで組む．
+強調が必要なときは第6章の圏点かゴシックを使う．
+
+\CatLabel{和文本文}{\textbackslash normalfont\textbackslash mcfamily}
+{\normalfont\mcfamily 数列の一般項を求める．Noto Serif CJK JP，本文 8 pt．}
+
+\CatLabel{和文見出し}{\textbackslash sffamily\textbackslash gtfamily\textbackslash bfseries}
+{\sffamily\gtfamily\bfseries 数列の一般項を求める．Noto Sans CJK JP．}
+
+\CatLabel{表題}{\textbackslash SMTitleFont}
+{\SMTitleFont\fontsize{13}{15}\selectfont 数列の基礎}
+
+\CatLabel{シリーズ名}{\textbackslash SMSeriesFont}
+{\SMSeriesFont\fontsize{10}{12}\selectfont 講義／数学 B}
+
+\CatLabel{署名（明朝）}{\textbackslash SMAuthorMinchoFont}
+{\SMAuthorMinchoFont\fontsize{11}{13}\selectfont 数学編集部}
+
+\CatLabel{署名（ゴシック）}{\textbackslash SMAuthorGothicFont}
+{\SMAuthorGothicFont\fontsize{11}{13}\selectfont 数学編集部}
+
+\CatLabel{欧文本文}{\textbackslash rmfamily}
+{\rmfamily The sum of an arithmetic progression. TeX Gyre Termes.}
+
+\CatLabel{欧文見出し}{\textbackslash sffamily}
+{\sffamily The sum of an arithmetic progression. TeX Gyre Heros.}
+
+\CatLabel{数式}{TeX Gyre Termes Math}
+$f(x)=ax^2+bx+c$，$\dfrac{\mathrm{d}x}{\mathrm{d}t}$，
+$\int_a^b f(x)\,\mathrm{d}x$，$\bm{a}\cdot\bm{b}$
+
+\CatUse{数式書体を欧文本文と同じ Termes 系にそろえてある．
+原稿側で amssymb と bm を読み込まない．
+\textbackslash bm は \textbackslash symbf の別名として最初から使える．}
+
+% =====================================================================
+\MMSec{Σ の字形と配置}
+
+\CatUse{行内式と別行数式で Σ 本体の大きさを変えない．上下限は必ず真上と真下に置く．
+原稿側で \textbackslash textstyle や \textbackslash limits を書く必要はない．}
+
+\CatLabel{行内式}{\$\textbackslash sum\_\{k=1\}\^{}\{n\}a\_k\$}
+和 $S_n=\sum_{k=1}^{n}a_k$ を考える．この Σ と，次の別行数式の Σ は
+同じ大きさである．
+
+\CatLabel{別行数式}{\textbackslash [ \textbackslash sum ... \textbackslash ]}
+\[
+  S_n=\sum_{k=1}^{n}a_k=\dfrac{n(a_1+a_n)}{2}
+\]
+
+\CatLabel{入れ子}{添字の中でも同じ扱い}
+\[
+  \sum_{k=1}^{n}\left(\sum_{j=1}^{k}j\right)
+  =\sum_{k=1}^{n}\dfrac{k(k+1)}{2}
+\]
+
+% =====================================================================
+\MMSec{色}
+
+本文の紙面はグレースケールで組み，色を持つのは表紙と，
+背景パターンの色味だけである．
+
+\CatLabel{紙面}{surikumi.sty}
+\CatColour{SMink}{本文・罫・ラベルの黒}
+\CatColour{SMrule}{細い罫}
+\CatColour{SMband}{帯の地}
+\CatColour{SMpale}{淡い地}
+\CatColour{SMpatternA}{扉パターンの明部}
+\CatColour{SMpatternB}{扉パターンの暗部}
+
+\CatLabel{表紙とパターンの色味}{\textbackslash MMCover，pattern-accent}
+\CatColour{SMcoverBlue}{}
+\CatColour{SMcoverDeepBlue}{}
+\CatColour{SMcoverOrange}{}
+\CatColour{SMcoverCyan}{}
+\CatColour{SMcoverViolet}{}
+\CatColour{SMcoverLime}{}
+\CatColour{SMcoverWarm}{}
+
+% =====================================================================
+\MMSec{記号}
+
+\MMSub{確認記事の正方形と矢印}
+
+\CatUse{正方形はコメント，矢印は注釈を表す．斜線入りはすべての読者向け，
+黒塗りは意欲的な読者向けである．見た目ではなく対象読者で選ぶ．
+短縮名では Com がコメント，Ann が注釈，接尾の A が意欲的な読者向けを表す．}
+
+\CatBoth{斜線入り正方形}{\textbackslash MMConfirmationGeneralComment}{\textbackslash MMCom}
+\MMCom{和から一般項を求めた後は，$n=1$ を確認する．}
+
+\CatBoth{黒塗り正方形}{\textbackslash MMConfirmationAdvancedComment}{\textbackslash MMComA}
+\MMComA{同じ考え方を重み付きの和へ応用できる．}
+
+\CatBoth{斜線入り矢印}{\textbackslash MMConfirmationGeneralNote}{\textbackslash MMAnn}
+\MMAnn{$r=1$ の場合は別に確認する．}
+
+\CatBoth{黒塗り矢印}{\textbackslash MMConfirmationAdvancedNote}{\textbackslash MMAnnA}
+\MMAnnA{母関数を用いる見方もある．}
+
+\CatLabel{記号だけ}{\textbackslash MMComMark，\textbackslash MMComAMark，\textbackslash MMAnnMark，\textbackslash MMAnnAMark}
+\noindent
+\MMComMark\hspace{.8em}
+\MMComAMark\hspace{.8em}
+\MMAnnMark\hspace{.8em}
+\MMAnnAMark\par
+
+\CatBoth{長いコメント}{mmconfirmationgeneralcomment}{mmcom}
+\begin{mmcom}
+差を取ると中間項が消える．
+\[
+  \sum_{k=1}^{n}(b_{k+1}-b_k)=b_{n+1}-b_1
+\]
+\end{mmcom}
+
+\CatLabel{番号つきの注記系列}{[1]，[2]}
+\MMAnn[1]{$S_n-S_{n-1}$ を計算する．}
+\MMAnn[2]{$n=1$ は別に確認する．}
+
+\CatUse{番号は，関連する注記が一つの系列として続く場合だけ付ける．
+単発の注記に番号を付けない．}
+
+\MMSub{そのほかの記号}
+
+\CatLabel{短い注記}{\textbackslash MMNote}
+\MMNote{三角も注記本文も，本文と同じ書体・ウェイト・大きさで組む．}
+
+\CatBoth{場合分け}{\textbackslash MMCaseHeading}{\textbackslash MMCase}
+\MMCase{1}{$x\geq0$ のとき}
+$|x|=x$ であるから，与式は $2x-1$ となる．
+
+\MMCase{2}{$x<0$ のとき}
+$|x|=-x$ であるから，与式は $-1$ となる．
+
+\CatUse{黒四角を付けず，太字にもしない．番号だけで区別する．}
+
+\CatBoth{ラベル}{\textbackslash MMBlackLabel，\textbackslash MMSolutionLabel}{\textbackslash MMLabel，\textbackslash MMSolLabel}
+\noindent
+\MMLabel{答}\hspace{.8em}\MMLabel{注}\hspace{1.4em}
+\MMSolLabel{解}\hspace{.8em}\MMSolLabel{別解}\par
+
+\CatLabel{記入欄}{\textbackslash MMBlank，\textbackslash MSCheckbox}
+\noindent
+$x=\MMBlank[14mm]$\hspace{1.4em}\MSCheckbox\hspace{.4em}確認した\par
+
+\CatBoth{大問番号}{\textbackslash MMMockNumber，\textbackslash MMExerciseNumber}{\textbackslash MMExNum}
+\noindent
+\MMMockNumber{1}\hspace{.8em}\MMMockNumber{2}\hspace{1.4em}
+\MMExNum{3.}\par
+
+% =====================================================================
+\MMSec{記事の種類を選ばない部品}
+
+\CatUse{講義・演習・確認・解説記事のどれでも，同じ意味で使う．}
+
+\MMSub{強調}
+
+\CatLabel{圏点}{\textbackslash MMKenten}
+和の上端と下端は\MMKenten{必ず}確認する．
+圏点は本文の書体・ウェイト・大きさを変えないので，
+8 ポイントの高密度な紙面でも行の色が乱れない．
+
+\CatLabel{用語の初出}{\textbackslash MMTerm}
+\MMTerm{階差数列}を $b_n=a_{n+1}-a_n$ とおく．
+以後は本文の明朝体のままでよい．
+
+\CatLabel{ルビ}{\textbackslash MMRuby}
+\MMRuby{漸化式}{ぜんかしき}を立てる．
+語ごとに区切るときは\MMRuby{階|差|数|列}{かい|さ|すう|れつ}と縦棒で対応させる．
+
+\CatUse{正方形は使わない．正方形は確認系のコメントだけを意味するという規約を，
+強調のために崩さない．圏点の記号は \textbackslash MMKentenMark にあり，
+誌面で1種類に統一する．}
+
+\MMSub{リード文，公式，まとめ}
+
+\CatLabel{リード文}{\textbackslash MMLead}
+\MMLead{本文と同じ書体・大きさで組み，細い罫線と字下げだけで区別する．
+見出しの代わりには使わない．}
+
+\CatBoth{公式の提示}{\textbackslash MMFormulaBox}{\textbackslash MMFormula}
+\MMFormula{%
+  \[
+    \sum_{k=1}^{n}k=\dfrac{n(n+1)}{2}
+  \]}
+
+\CatUse{公式の提示と答の強調は別物である．閉じた四角ではなく，
+左の太い罫と淡い地色とラベルで構成する．
+答を示すときは解答ラベルと通常の別行数式を使う．}
+
+\CatLabel{まとめ}{\textbackslash MMSummary}
+\MMSummary{使える $n$ の範囲を必ず確かめる．}
+
+\MMSub{図表キャプション}
+
+\CatLabel{図の見出し}{\textbackslash MMCaption}
+\MMCaption{等差数列の項は等間隔に並ぶ}
+
+\CatLabel{表の見出し}{\textbackslash MMCaption[table]}
+\MMCaption[table]{よく使う和の公式}
+
+\CatUse{図と表は別々に番号が付く．カウンターは mmfigure と mmtable，
+ラベル名は \textbackslash MMFigureName と \textbackslash MMTableName で変えられる．
+星付きは番号を付けない．図の見出しは図の下，表の見出しは表の上に置く．}
+
+% =====================================================================
+\MMSec{見出しの記法}
+
+\CatUse{三系統ある．同じ記事に混ぜない．}
+
+\MMSub{講義・演習}
+
+\CatLabel{大きな区切り}{\textbackslash MMHeading}
+\MMHeading{解\qquad 説}
+
+\CatBoth{小見出し}{\textbackslash MMSubheading}{\textbackslash MMSubhead}
+\MMSubhead{漸化式の型を見分ける}
+本文がここから続く．
+
+\MMSub{確認}
+
+\CatUse{この記事自体が確認の見出しで組んである．
+\textbackslash MMSec がこの章の見出し，\textbackslash MMSub がこの行である．}
+
+\CatBoth{行頭の型名}{\textbackslash MMConfirmationRunInHeading}{\textbackslash MMRun}
+\MMRun{等比型}
+$a_{n+1}=ra_n$ のとき，$a_n=r^{n-1}a_1$ である．
+
+\MMRun{等差型}
+$a_{n+1}-a_n=d$ のとき，$a_n=a_1+(n-1)d$ である．
+
+\CatLabel{番号なしの見出し}{星付き形式}
+\MMSub*{補足}
+星付きは番号を進めない．
+
+% =====================================================================
+\MMSec{講義の部品}
+
+\CatLabel{例題}{mmexample}
+\begin{mmexample}[8.1]{等差数列と二次方程式}
+初項 $a$，公差 $d$ の等差数列 $\{a_n\}$ が
+$a_2a_3=a_1a_4+6$ を満たすとき，$d$ を求めよ．
+\end{mmexample}
+
+\CatLabel{解答}{mmsolution}
+\begin{mmsolution}
+$a_n=a+(n-1)d$ とおくと，
+\begin{align*}
+  a_2a_3-a_1a_4
+    &= (a+d)(a+2d)-a(a+3d) \\
+    &= 2d^2
+\end{align*}
+であるから，$2d^2=6$ すなわち $d=\pm\sqrt{3}$ である．
+\end{mmsolution}
+
+\CatBoth{別解}{\textbackslash MMAlternative}{\textbackslash MMAlt}
+\MMAlt{対称性から見る}
+$a_2a_3$ と $a_1a_4$ の差は，中央からの隔たりの二乗の差である．
+
+\CatLabel{類題}{mmproblem}
+\begin{mmproblem}[8.1]{等比数列}
+公比が正の等比数列で $a_2=6$，$a_4=54$ のとき，$a_1$ を求めよ．
+\end{mmproblem}
+
+\CatBoth{証明表示}{mmconfirmationproof}{mmproof}
+\begin{mmproof}
+$n=1$ のとき命題は成り立つ．$n=k$ で成り立つと仮定すると，
+$n=k+1$ でも成り立つ．したがって，すべての自然数 $n$ で成り立つ．
+\end{mmproof}
+
+% =====================================================================
+\MMSec{演習の部品}
+
+\CatBoth{公式の列挙}{mmconfirmationroman}{mmroman}
+\begin{mmroman}
+  \item $a_{n+1}-a_n=d$
+  \item $a_n=a_1+(n-1)d$
+  \item $S_n=\dfrac{n(a_1+a_n)}{2}$
+\end{mmroman}
+
+\CatLabel{問題一覧と出典}{mmproblems，\textbackslash MMSource}
+\begin{mmproblems}
+  \item $\sum_{k=1}^{n}k(k+1)$ を求めよ．
+    \MMSource{26 ○○大・理}
+  \item $a_1=1$，$a_{n+1}=2a_n+1$ で定まる数列の一般項を求めよ．
+    \MMSource{25 △△大・工}
+\end{mmproblems}
+
+\CatBoth{難易と目標時間}{\textbackslash MMLegend，\textbackslash MMDifficultyItem}{\textbackslash MMDiffItem}
+\MMLegend{%
+  \MMDiffItem{1}{A}{20}\hspace{1.2em}%
+  \MMDiffItem{2}{B}{25}\hspace{1.2em}%
+  \MMDiffItem{3}{C}{30}%
+}
+
+\CatUse{第1引数は一覧での呼び名（通常は問題番号），第2引数が難易度，
+第3引数が目標時間である．\textbackslash MMTimeMarks は 10 分を *，5 分を ° に直すので，
+25 分は **° となる．5 の倍数以外は警告が出る．}
+
+% =====================================================================
+\MMSec{一時的に全段幅を使う}
+
+1 段に収まらない式は，まず式を分ける．それでも収まらないときだけ
+全段幅へ逃がす．
+
+\begin{mmwideblock}
+  \[
+    \sum_{k=1}^{n}k(k+1)(k+2)(k+3)
+      =\dfrac{n(n+1)(n+2)(n+3)(n+4)}{5}
+  \]
+\end{mmwideblock}
+
+\CatUse{上が mmwideblock である．そのページで先に組まれた両方の段の下に置かれる．
+片方の段の下端に空きが残るのは正常な結果であり，負の \textbackslash vspace で詰めない．
+短いものには \textbackslash MMWideBlock\{...\} を使う．}
+
+% =====================================================================
+\MMSec{模試の部品}
+
+\CatLabel{試験冊子}{mmmockpaper，mmmockquestion，mmmockparts}
+\begin{mmmockpaper}[第1問]
+\begin{mmmockquestion}{1}[共通]
+$f(x)=x^3-3x$ について，次の問いに答えよ．
+\begin{mmmockparts}
+  \item $f(x)$ の極値を求めよ．
+  \item $y=f(x)$ と $y=k$ が異なる 3 点で交わる $k$ の範囲を求めよ．
+\end{mmmockparts}
+\end{mmmockquestion}
+\end{mmmockpaper}
+
+\CatUse{扉は \textbackslash MMMockTitle，情報は \textbackslash MMMockSetup で与える．
+コンテストの答案用紙と要項は \textbackslash MMAnswerSheet，
+\textbackslash MMInfoSheet である．}
+
+% =====================================================================
+\MMSec{問題集の追加部品}
+
+\CatUse{surikumi-mondaishu.sty が持つ部品．問題集の10型のために足したもので，
+surikumi.sty の再定義はしていない．}
+
+\CatLabel{段階ヒント}{mshint，\textbackslash MSHint，\textbackslash MSHintBreak}
+\MSHint{1}{両辺を $a_n$ で割ってみる．}
+\MSHint{2}{$b_n=\dfrac{1}{a_n}$ とおくと等差型になる．}
+\MSHintBreak
+
+\CatBoth{短問と答えの帯}{msdrill，msanswerstrip，\textbackslash MSAns}{msans}
+\begin{msdrill}
+  \item $\sum_{k=1}^{n}k$
+  \item $\sum_{k=1}^{n}k^2$
+  \item $\sum_{k=1}^{n}2^k$
+\end{msdrill}
+
+\begin{msans}
+\MSAns{1}{$\dfrac{n(n+1)}{2}$}
+\MSAns{2}{$\dfrac{n(n+1)(2n+1)}{6}$}
+\MSAns{3}{$2^{n+1}-2$}
+\end{msans}
+
+\CatLabel{誤答の分析}{msmistake，\textbackslash MSWhereWrong}
+\begin{msmistake}
+$|x-1|=2x$ より $x-1=2x$ または $x-1=-2x$ であるから，
+$x=-1$ または $x=\dfrac{1}{3}$ である．
+\end{msmistake}
+\MSWhereWrong{右辺 $2x$ が負になり得ることを確認していない．
+$2x\geq0$ すなわち $x\geq0$ が必要である．}
+
+\CatLabel{採点基準と講評}{msrubric，\textbackslash MSComment}
+\begin{msrubric}
+  場合分けの条件を明記している & 2 \\
+  各場合で正しく絶対値を外している & 3 \\
+  解の吟味を書いている & 1 \\
+\end{msrubric}
+\MSComment{方針は正しいが，論理の向きの断りが抜けている．}
+
+\CatUse{msrubric と msindex は表である．\textbackslash item ではなく \& で列を区切る．}
+
+\CatLabel{難易度つき一覧表}{msindex}
+\begin{msindex}
+  1 & 二次不等式と整数解 & \MMDiff{A}{10} & 基本 \\
+  2 & 場合の数 & \MMDiff{B}{20} & 12 ○○大・改 \\
+  3 & 図形と論証 & \MMDiff{C}{30} & 08 △△大・改 \\
+\end{msindex}
+
+\CatBoth{解法の型}{\textbackslash MSPattern，msprocedure}{msproc}
+\MSPattern{特性方程式に帰着させる}
+\begin{msproc}
+  \item $a_{n+1}=pa_n+q$ の形を確認する．
+  \item $\alpha=p\alpha+q$ を解く．
+  \item $a_n-\alpha$ が等比数列になることを使う．
+\end{msproc}
+
+\CatLabel{自己確認欄}{\textbackslash MSCheckItem}
+\MSCheckItem{場合分けの条件を書いたか}
+\MSCheckItem{解の吟味をしたか}
+
+\CatBoth{見開きの面見出し}{\textbackslash MSSpreadHeading}{\textbackslash MSSpread}
+\MSSpread{問題}
+
+\CatUse{見開きの制御 \textbackslash MSStartVerso は改ページを伴うため，
+この見本には載せていない．用例は ps03-spread.tex にある．}
+
+% =====================================================================
+\MMSec{この見本に載せていないもの}
+
+面を丸ごと作る部品は，2 段組の本文に挿し込めないため一覧だけを示す．
+
+\begin{mmroman}
+  \item \CatName{\textbackslash MMCover}――表紙一面．
+  \item \CatName{\textbackslash MMMockTitle}――模試の扉．
+  \item \CatName{\textbackslash MMAnswerSheet}――コンテストの答案用紙．
+  \item \CatName{\textbackslash MMInfoSheet}――応募要項の面．
+  \item \CatName{\textbackslash MSStartVerso}――次を偶数ページへ送る．
+    用例は \CatName{examples/problem-sets/ps03-spread.tex}．
+\end{mmroman}
+
+背景パターン31種は \CatName{pattern-catalog.pdf}，
+解説記事の部品は \CatName{kaisetsu-catalog.pdf} にある．
+短縮名の全対応表は \CatName{docs/catalog.md} の第13章にある．
+
+\end{document}

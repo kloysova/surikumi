@@ -284,4 +284,20 @@
   \par\addvspace{.5\baselineskip}%
 }
 
+% ---------------------------------------------------------------------------
+% 9. Short names
+% ---------------------------------------------------------------------------
+% Aliases only; see the same section in surikumi.sty for the naming rule.
+% Most names here are short already, so only the three long ones are copied.
+
+\NewCommandCopy{\MSAnsLabel}{\MSAnswerStripLabel}
+\NewCommandCopy{\MSSpread}{\MSSpreadHeading}
+\NewCommandCopy{\MSPReset}{\MSPatternReset}
+
+% Wrappers, not \NewEnvironmentCopy; see the note in surikumi.sty.
+\NewDocumentEnvironment{msans}{}
+  {\begin{msanswerstrip}}{\end{msanswerstrip}}
+\NewDocumentEnvironment{msproc}{}
+  {\begin{msprocedure}}{\end{msprocedure}}
+
 \endinput
