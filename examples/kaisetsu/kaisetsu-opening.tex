@@ -2,8 +2,10 @@
 % 本文は本例のために書き下ろした説明文であり，実在の記事の引用ではない．
 \documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
 
+% bm は読み込まない．surikumi が unicode-math を使うため，\bm は
+% \symbf の別名として最初から使える．bm を重ねると行内式の \sum の
+% 上下限が Σ の右肩・右下へ戻ってしまう．
 \usepackage{surikumi-kaisetsu}
-\usepackage{bm}
 
 \MathKaisetsuSetup{
   journal-name={数理組版},

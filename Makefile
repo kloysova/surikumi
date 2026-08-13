@@ -4,6 +4,7 @@ KAISETSU_BUILD_DIR := build/public/kaisetsu
 EXAMPLES := \
 	examples/magazine/surikumi-confirmation.tex \
 	examples/magazine/surikumi-patterns.tex \
+	examples/magazine/surikumi-readability.tex \
 	examples/magazine/surikumi-symbol-proof.tex
 PDFS := $(patsubst examples/magazine/%.tex,$(BUILD_DIR)/%.pdf,$(EXAMPLES))
 
@@ -53,3 +54,4 @@ $(PS_BUILD_DIR)/%.pdf: examples/problem-sets/%.tex surikumi.sty \
 
 clean:
 	rm -rf "$(BUILD_DIR)"
+	rm -f *.ltjruby
