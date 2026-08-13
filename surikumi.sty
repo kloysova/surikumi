@@ -2381,24 +2381,15 @@
   }
 }
 
-% Every mark is .82em tall, so one 1.68em-long stroke always crosses the
-% whole height; only how many strokes are needed depends on the width.
-% The sweep is derived from the mark width and is never allowed to fall
-% below the historical range, which keeps the .82em square and the 1.25em
-% arrow bit-for-bit identical while wider marks are hatched completely.
-\newcommand{\smag@confirmation@hatchlines}[1]{%
-  \pgfmathtruncatemacro{\smag@hatchlast}{max(3,ceil((#1-.42)/.28))}%
-  \foreach \smag@hatchindex in {-5,...,\smag@hatchlast}{%
-    \pgfmathsetmacro{\smag@hatchoffset}{.28*\smag@hatchindex}%
-    \draw[smag confirmation hatch]
-      (\smag@hatchoffset,-.42) -- ++(1.68,1.68);%
+\newcommand{\smag@confirmation@hatchlines}{%
+  \foreach \smag@hatchoffset in
+    {-1.40,-1.12,-.84,-.56,-.28,0,.28,.56,.84}{%
+      \draw[smag confirmation hatch]
+        (\smag@hatchoffset,-.42) -- ++(1.68,1.68);%
   }%
 }
 
-% #1 fill mode, #2 mark width in em, #3 body path, #4 extra outline path.
-% The extra outline is stroked but never filled or hatched; it exists so
-% that concentric marks share the outline weight of every other symbol.
-\newcommand{\smag@confirmation@symbol@core}[4]{%
+\newcommand{\smag@confirmation@symbol}[3]{%
   \tikz[baseline=.17em,x=1em,y=1em]{%
     \path[use as bounding box] (0,0) rectangle (#2,.82);%
     \ifstrequal{#1}{filled}{%
@@ -2407,16 +2398,11 @@
       \begin{scope}
         \clip #3;%
         \path[fill=white] #3;%
-        \smag@confirmation@hatchlines{#2}
+        \smag@confirmation@hatchlines
       \end{scope}
     }%
     \path[smag confirmation outline] #3;%
-    \ifstrempty{#4}{}{\path[smag confirmation outline] #4;}%
   }%
-}
-
-\newcommand{\smag@confirmation@symbol}[3]{%
-  \smag@confirmation@symbol@core{#1}{#2}{#3}{}%
 }
 
 \NewDocumentCommand{\MMConfirmationStripedMark}{}{%
@@ -2514,243 +2500,6 @@
 % Backward-compatible generic short name: a general note for every reader.
 \NewDocumentCommand{\MMConfirmationNote}{O{} +m}{%
   \MMConfirmationGeneralNote[#1]{#2}%
-}
-
-% --- Extended mark vocabulary -------------------------------------------
-%
-% The square means "comment" and the arrow means "note"; both meanings are
-% taken, so a new meaning always gets a new outline.  The hatched/solid
-% distinction is the grammar of the system rather than a property of one
-% shape, so every family below exists in both forms: hatched for all
-% readers, solid for motivated readers.
-%
-% All shapes are .82em tall and are drawn through
-% \smag@confirmation@symbol(@core), so outline weight, hatch angle, hatch
-% spacing, hatch phase and baseline are identical across the whole set.
-% Widths differ because the outlines differ; the hatch sweep follows the
-% width, so a wide mark is hatched completely without shifting its phase.
-
-% Upward triangle: the point that carries the argument.
-\def\smag@confirmation@pointpath{%
-  (0,0) -- (.90,0) -- (.45,.82) -- cycle%
-}
-% Lozenge, deliberately wider than tall so that it can never be read as a
-% rotated comment square: a pitfall or a frequent mistake.
-\def\smag@confirmation@cautionpath{%
-  (0,.41) -- (.50,0) -- (1.00,.41) -- (.50,.82) -- cycle%
-}
-% Elongated hexagon, a signpost: how to attack the problem.  It is kept
-% markedly wider than tall so that its solid form cannot be confused with
-% the solid circle at body size.
-\def\smag@confirmation@hintpath{%
-  (0,.41) -- (.30,0) -- (.90,0) -- (1.20,.41) -- (.90,.82) -- (.30,.82)
-  -- cycle%
-}
-% Circle: a definition, a theorem, or a formula to memorise.
-\def\smag@confirmation@formulapath{%
-  (.41,.41) circle[radius=.41]%
-}
-% Concentric circles, the Japanese "double circle" of a verified result:
-% check the answer.  The inner disc carries the fill or the hatching and
-% the outer circle is stroked with the shared outline weight.
-\def\smag@confirmation@checkpath{%
-  (.41,.41) circle[radius=.28]%
-}
-\def\smag@confirmation@checkringpath{%
-  (.41,.41) circle[radius=.41]%
-}
-% Pentagon: material beyond the standard syllabus.
-\def\smag@confirmation@extensionpath{%
-  (.430,.82) -- (0,.507) -- (.164,0) -- (.696,0) -- (.860,.507) -- cycle%
-}
-% Circular sector: look at the figure.  A trapezoid was rejected here
-% because at body size it is too close to the comment square, and the
-% square carries a reserved meaning.
-\def\smag@confirmation@figurepath{%
-  (0,0) -- (.82,0) arc[start angle=0,end angle=90,radius=.82] -- cycle%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedPointMark}{}{%
-  \smag@confirmation@symbol{hatched}{.90}{\smag@confirmation@pointpath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledPointMark}{}{%
-  \smag@confirmation@symbol{filled}{.90}{\smag@confirmation@pointpath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedCautionMark}{}{%
-  \smag@confirmation@symbol{hatched}{1.00}{\smag@confirmation@cautionpath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledCautionMark}{}{%
-  \smag@confirmation@symbol{filled}{1.00}{\smag@confirmation@cautionpath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedHintMark}{}{%
-  \smag@confirmation@symbol{hatched}{1.20}{\smag@confirmation@hintpath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledHintMark}{}{%
-  \smag@confirmation@symbol{filled}{1.20}{\smag@confirmation@hintpath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedFormulaMark}{}{%
-  \smag@confirmation@symbol{hatched}{.82}{\smag@confirmation@formulapath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledFormulaMark}{}{%
-  \smag@confirmation@symbol{filled}{.82}{\smag@confirmation@formulapath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedCheckMark}{}{%
-  \smag@confirmation@symbol@core{hatched}{.82}%
-    {\smag@confirmation@checkpath}{\smag@confirmation@checkringpath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledCheckMark}{}{%
-  \smag@confirmation@symbol@core{filled}{.82}%
-    {\smag@confirmation@checkpath}{\smag@confirmation@checkringpath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedExtensionMark}{}{%
-  \smag@confirmation@symbol{hatched}{.86}{\smag@confirmation@extensionpath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledExtensionMark}{}{%
-  \smag@confirmation@symbol{filled}{.86}{\smag@confirmation@extensionpath}%
-}
-
-\NewDocumentCommand{\MMConfirmationStripedFigureMark}{}{%
-  \smag@confirmation@symbol{hatched}{.82}{\smag@confirmation@figurepath}%
-}
-\NewDocumentCommand{\MMConfirmationFilledFigureMark}{}{%
-  \smag@confirmation@symbol{filled}{.82}{\smag@confirmation@figurepath}%
-}
-
-% One declaration builds the whole public interface of a family, so that
-% every family offers exactly the same commands and environments as the
-% square and the arrow.  #1 is the family name as it appears in command
-% names, #2 the same name in the lowercase form used by environments.
-% The generated environments accept several paragraphs and display
-% mathematics, and reuse the shared comment opener and closer.
-\newcommand{\smag@confirmation@declarefamily}[2]{%
-  \expandafter\NewDocumentCommand
-    \csname mmconfirmationgeneral#2\endcsname{O{}}{%
-      \smag@confirmationcomment@begin
-        {\csname MMConfirmationStriped#1Mark\endcsname}{##1}%
-    }%
-  \csdef{endmmconfirmationgeneral#2}{\smag@confirmationcomment@end}%
-  \expandafter\NewDocumentCommand
-    \csname mmconfirmationadvanced#2\endcsname{O{}}{%
-      \smag@confirmationcomment@begin
-        {\csname MMConfirmationFilled#1Mark\endcsname}{##1}%
-    }%
-  \csdef{endmmconfirmationadvanced#2}{\smag@confirmationcomment@end}%
-  \expandafter\NewDocumentCommand
-    \csname MMConfirmationGeneral#1\endcsname{O{} +m}{%
-      \begin{mmconfirmationgeneral#2}[##1]##2\end{mmconfirmationgeneral#2}%
-    }%
-  \expandafter\NewDocumentCommand
-    \csname MMConfirmationAdvanced#1\endcsname{O{} +m}{%
-      \begin{mmconfirmationadvanced#2}[##1]##2\end{mmconfirmationadvanced#2}%
-    }%
-}
-
-\smag@confirmation@declarefamily{Point}{point}
-\smag@confirmation@declarefamily{Caution}{caution}
-\smag@confirmation@declarefamily{Hint}{hint}
-\smag@confirmation@declarefamily{Formula}{formula}
-\smag@confirmation@declarefamily{Check}{check}
-\smag@confirmation@declarefamily{Extension}{extension}
-\smag@confirmation@declarefamily{Figure}{figure}
-
-% --- Label, number and rating variants ----------------------------------
-
-% Outlined counterpart of \MMBlackLabel, for spreads where several labels
-% would otherwise collapse into a row of solid black blocks.  Same face,
-% same size, same baseline; only the weight on the page differs.
-\NewDocumentCommand{\MMOutlineLabel}{m}{%
-  \tikz[baseline=-.5ex]
-    \node[draw=SMink,line width=.5pt,fill=white,text=SMink,
-      rounded corners=1.2pt,
-      inner xsep=2.2pt,inner ysep=.7pt,
-      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
-}
-
-% Tinted label: quieter than the black label, heavier than the outlined
-% one.  Useful for the third level of a dense opening page.
-\NewDocumentCommand{\MMTintLabel}{m}{%
-  \tikz[baseline=-.5ex]
-    \node[fill=SMpale,text=SMink,rounded corners=1.2pt,
-      inner xsep=2.2pt,inner ysep=.7pt,
-      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
-}
-
-% White circular number: the counterpart of \MMMockNumber, for a second
-% series of numbers on the same page.
-\NewDocumentCommand{\MMOutlineNumber}{m}{%
-  \tikz[baseline=-.62ex]
-    \node[circle,draw=SMink,line width=.5pt,fill=white,text=SMink,
-      minimum size=2.05em,inner sep=0pt,
-      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
-}
-
-% Rounded rectangular number.  It always contains a numeral and is drawn
-% at label size, so it belongs to the numbering system, not to the .82em
-% inline mark system in which a square means "comment".
-\NewDocumentCommand{\MMSquareNumber}{m}{%
-  \tikz[baseline=-.62ex]
-    \node[draw=SMink,line width=.5pt,fill=white,text=SMink,
-      rounded corners=2.4pt,minimum size=1.9em,inner sep=0pt,
-      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
-}
-
-\NewDocumentCommand{\MMFilledSquareNumber}{m}{%
-  \tikz[baseline=-.62ex]
-    \node[fill=SMink,text=white,
-      rounded corners=2.4pt,minimum size=1.9em,inner sep=0pt,
-      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
-}
-
-% Explicit difficulty scale, \MMDifficultyDots{3}{5} being "3 out of 5".
-% \MMDifficulty and \MMTimeMarks are unchanged and still express the
-% target time; the dots express difficulty alone, which the time marks
-% cannot do.  The dots share the mark baseline, so a rating aligns with
-% the inline marks in the same line.
-\NewDocumentCommand{\MMDifficultyDots}{m m}{%
-  \tikz[baseline=.17em,x=1em,y=1em]{%
-    \path[use as bounding box] (0,0) rectangle ({.30*#2-.07},.82);%
-    \foreach \smag@dotindex in {1,...,#2}{%
-      \draw[draw=SMink,line width=.35pt,fill=white]
-        ({.115+.30*(\smag@dotindex-1)},.41) circle[radius=.115];%
-    }%
-    \ifnum#1>0\relax
-      \foreach \smag@dotindex in {1,...,#1}{%
-        \draw[draw=SMink,line width=.35pt,fill=SMink]
-          ({.115+.30*(\smag@dotindex-1)},.41) circle[radius=.115];%
-      }%
-    \fi
-  }%
-}
-
-% End-of-answer mark.  Neither a hollow nor a solid square, so it cannot
-% be mistaken for a comment; the double stroke is the traditional
-% Japanese proof terminator.
-\newcommand{\smag@qedmark}{%
-  \tikz[baseline=.17em,x=1em,y=1em]{%
-    \path[use as bounding box] (0,0) rectangle (.52,.82);%
-    \draw[draw=SMink,line width=.42pt,line cap=butt] (.04,.10)--(.26,.72);
-    \draw[draw=SMink,line width=.42pt,line cap=butt] (.26,.10)--(.48,.72);
-  }%
-}
-
-% Sets the mark flush right on the last line of the answer, moving it to
-% a short line of its own only when the last line is already full.
-\NewDocumentCommand{\MMQED}{}{%
-  \unskip\nobreak\hfil\penalty50\hskip.6em\null\nobreak\hfil
-  \smag@qedmark
-  {\parfillskip=0pt\relax\finalhyphendemerits=0\relax\par}%
-}
-
-% Inline pointer to another page, another problem, or a source, for use
-% inside running text.  The block-level \MMSource is unchanged and
-% remains the form for a problem's origin.
-\NewDocumentCommand{\MMSeeAlso}{m}{%
-  {\normalfont\rmfamily\mcfamily\mdseries（→\,#1）}%
 }
 
 \NewDocumentCommand{\MMConfirmationProofLabel}{O{証明}}{%
