@@ -20,6 +20,27 @@
   \par\vspace{4mm}%
 }
 
+% Variant sampler for the mathematical-motif patterns, which also accepts
+% pattern-tone / pattern-accent / pattern-scale settings.
+\newcommand{\PatternTuned}[3][]{%
+  \par\noindent{\sffamily\bfseries #2}\par\smallskip
+  \begingroup
+    \MathMagazineSetup{
+      pattern=#3,
+      series-position=left,
+      series={講義／数学},
+      title={数列の基礎},
+      author={数学編集部},
+      author-font=mincho,
+      author-position=right,
+      title-fill=black,
+      #1
+    }%
+    \MMTitleBanner
+  \endgroup
+  \par\vspace{4mm}%
+}
+
 \newcommand{\PatternVariant}[6]{%
   \par\noindent{\sffamily\bfseries #1}\par\smallskip
   \begingroup
@@ -43,7 +64,9 @@
 \begin{center}
   {\sffamily\gtfamily\bfseries\LARGE 背景パターン見本}\par
   \smallskip
-  {\small 12 patterns: scales / triangles / diamonds / chevrons / weave / \ldots}
+  {\small 31 patterns: scales / triangles / diamonds / chevrons / weave / \ldots\\
+   和柄 10 種: asanoha / seigaiha / shippou / kikkou / sayagata / \ldots\\
+   数学的モチーフ 9 種: truchet / isocubes / sierpinski / lattice / \ldots}
 \end{center}
 \vspace{3mm}
 
@@ -65,5 +88,103 @@
 \PatternVariant{10. parquet（寄木線画）}{parquet}{center}{gothic}{center}{black}
 \PatternVariant{11. origami（折紙線画・白抜き題字）}{origami}{center}{mincho}{center}{white}
 \PatternVariant{12. ribbons（格子リボン）}{ribbons}{left}{gothic}{right}{black}
+
+\clearpage
+
+\begin{center}
+  {\sffamily\gtfamily\bfseries\large 和柄（日本の伝統文様）}\par
+  \smallskip
+  {\small 線画系 6 種・面塗り系 4 種．いずれも公有の意匠を TeX で作図した独自図形}
+\end{center}
+\vspace{2mm}
+
+\PatternSample{13. asanoha（麻の葉・線画）}{asanoha}{left}
+\PatternSample{14. seigaiha（青海波・線画）}{seigaiha}{center}
+\PatternSample{15. shippou（七宝・線画）}{shippou}{left}
+\PatternSample{16. kikkou（亀甲・線画）}{kikkou}{center}
+
+\clearpage
+
+\PatternVariant{17. sayagata（紗綾形・線画）}{sayagata}{center}{gothic}{center}{black}
+\PatternVariant{18. kagome（籠目・線画）}{kagome}{left}{mincho}{right}{black}
+\PatternSample{19. yagasuri（矢絣・面塗り）}{yagasuri}{left}
+\PatternSample{20. tatewaku（立涌・面塗り）}{tatewaku}{center}
+
+\clearpage
+
+\PatternSample{21. mitsukuzushi（三崩し・面塗り）}{mitsukuzushi}{left}
+\PatternVariant{22. ajiro（網代・面塗り・白抜き題字）}{ajiro}{center}{mincho}{center}{white}
+
+\clearpage
+
+\begin{center}
+  {\sffamily\gtfamily\bfseries\large 数学的モチーフのパターン}\par
+  \smallskip
+  {\small 9 patterns: truchet / isocubes / sierpinski / lattice / \ldots}
+\end{center}
+\vspace{2mm}
+
+\PatternTuned{23. truchet（トゥルーシェタイル）}{truchet}
+\PatternTuned{24. isocubes（等角投影の立方体）}{isocubes}
+\PatternTuned{25. sierpinski（シェルピンスキー三角形）}{sierpinski}
+\PatternTuned{26. lattice（格子点と基本平行四辺形）}{lattice}
+
+\clearpage
+
+\PatternTuned{27. moire（同心円とモアレ）}{moire}
+\PatternTuned{28. envelopes（放物線の包絡線）}{envelopes}
+\PatternTuned{29. girih（星形多角形の組子）}{girih}
+\PatternTuned{30. packing（円充填）}{packing}
+
+\clearpage
+
+\PatternTuned{31. spirals（螺旋）}{spirals}
+
+\begin{center}
+  {\sffamily\gtfamily\bfseries\large 濃度・色味・寸法の制御}
+\end{center}
+\vspace{2mm}
+
+\PatternTuned[pattern-tone=pale]{pattern-tone=pale}{isocubes}
+\PatternTuned[pattern-tone=light]{pattern-tone=light}{isocubes}
+\PatternTuned[pattern-tone=strong]{pattern-tone=strong（既定 normal は従来と同一）}{isocubes}
+
+\clearpage
+
+\PatternTuned[pattern-scale=1.6]{pattern-scale=1.6}{moire}
+\PatternTuned[pattern-scale=0.7]{pattern-scale=0.7}{packing}
+\PatternTuned[pattern-tone=light,pattern-accent=SMcoverBlue]%
+  {pattern-accent=SMcoverBlue（pattern-tone=light と併用）}{girih}
+\PatternTuned[pattern-tone=pale,pattern-accent=SMcoverOrange]%
+  {pattern-accent=SMcoverOrange（pattern-tone=pale と併用）}{sierpinski}
+
+\clearpage
+
+\begin{center}
+  {\sffamily\gtfamily\bfseries\large バナー以外の部品}
+\end{center}
+\vspace{2mm}
+
+\MathMagazineSetup{pattern=lattice,pattern-tone=light}
+
+\noindent
+\verb|\MMPatternRule| は節の区切りに使う細い帯である．高さは省略可能引数で
+指定する．
+
+\MMPatternRule
+
+\noindent
+既定の高さは 3.2mm である．次は 6mm を指定した例．
+
+\MMPatternRule[6mm]
+
+\noindent
+\verb|\MMPatternSwatch| は行中に置く見本である．小さな見本では
+\verb|pattern-scale| を 1 未満にすると図柄が 1 単位分収まる．
+\MathMagazineSetup{pattern-tone=normal,pattern-scale=0.34}%
+truchet \MathMagazineSetup{pattern=truchet}\MMPatternSwatch{11mm}，
+girih \MathMagazineSetup{pattern=girih}\MMPatternSwatch{11mm}，
+spirals \MathMagazineSetup{pattern=spirals}\MMPatternSwatch{11mm}
+のように凡例へ使える．
 
 \end{document}

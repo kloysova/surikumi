@@ -1,0 +1,180 @@
+% 可読性のための工夫の見本．
+% 既定のままでも泣き別れ抑制などは働くが，紙面の見た目を変える機能は
+% すべてオプトインである．ここでは柱・段間罫・和欧間アキを有効にする．
+\documentclass[lualatex,paper=b5j,fontsize=10pt,twoside]{jlreq}
+
+\usepackage[
+  runninghead,
+  columnrule,
+  interspacing
+]{surikumi}
+
+\MathMagazineSetup{
+  feature={},
+  series={要点の整理／数学 B},
+  series-position=left,
+  pattern=origami,
+  title={読みやすさの工夫},
+  author={数学編集部},
+  author-font=mincho,
+  author-position=right,
+  title-fill=black,
+  deck={高密度の紙面を保ったまま読みやすくするための部品をまとめる．}
+}
+
+\begin{document}
+
+\MakeMathMagazineTitle
+\MMConfirmationReset
+
+\MMConfirmationSection{強調のしかた}
+
+\MMLead{本文と同じ書体・同じ大きさのまま，読者の目を止める方法を三つ用意する．
+太字や色に頼らず，和文組版の作法に沿った手段を選ぶ．}
+
+\MMConfirmationSubsection{圏点による強調}
+
+文章の中で一時的に声を強めたいところには\MMKenten{圏点}を打つ．
+圏点は本文の書体・ウェイト・大きさを変えないので，
+$8$ ポイントの高密度な紙面でも行の色が乱れない．
+たとえば「和の上端と下端は\MMKenten{必ず}確認する」のように使う．
+
+\MMConfirmationSubsection{用語の初出}
+
+\MMTerm{階差数列}のように，用語の初出だけをゴシックで示す．
+以後は本文の明朝体のままでよい．
+\MMTerm{不動点}，\MMTerm{母関数}なども同じ扱いにする．
+
+\MMConfirmationSubsection{ルビ}
+
+読みにくい術語には\MMRuby{漸化式}{ぜんかしき}のようにルビを添える．
+語ごとに区切るときは\MMRuby{階|差|数|列}{かい|さ|すう|れつ}と縦棒で対応させる．
+
+\MMConfirmationSection{公式とまとめ}
+
+\MMLead{公式の提示と答の強調は別物である．
+答・最終結果を四角い枠で囲んではならないという規約は変わらない．}
+
+\MMFormulaBox{%
+  \[
+    \sum_{k=1}^{n}k=\dfrac{n(n+1)}{2},\qquad
+    \sum_{k=1}^{n}k^2=\dfrac{n(n+1)(2n+1)}{6}
+  \]}
+
+上の囲みは閉じた四角ではなく，左の太い罫と淡い地色でできている．
+そのため，答を囲んだ枠と見間違えることがない．
+
+\MMConfirmationGeneralComment{和の公式は，つねに上端と下端を先に読む．
+$\sum_{k=1}^{n}$ と $\sum_{k=0}^{n-1}$ は別物である．}
+
+\MMSummary{等差数列も等比数列も，一般項と和は初項と公差（公比）だけで決まる．
+和の公式は上端と下端の確認から始める．}
+
+\MMConfirmationSection{図表と全段幅}
+
+\MMConfirmationSubsection{キャプション}
+
+図と表には別々の番号が付く．
+
+\begin{center}
+  \begin{tikzpicture}[x=1mm,y=1mm]
+    \draw[draw=SMrule,line width=.45pt] (0,0)--(46,0);
+    \foreach \i in {0,1,2,3,4}{%
+      \fill[SMink] ({4+9*\i},0) circle (.7);
+      \node[below=1.2mm,font=\fontsize{6}{7}\selectfont]
+        at ({4+9*\i},0) {$a_{\the\numexpr\i+1\relax}$};
+    }
+  \end{tikzpicture}
+\end{center}
+\MMCaption{等差数列の項は等間隔に並ぶ}
+
+表のキャプションは表の上に置く．
+
+\MMCaption[table]{よく使う和の公式}
+\begin{center}
+  \fontsize{7}{9}\selectfont
+  \begin{tabular}{@{}ll@{}}
+    \hline
+    数列 & 和 \\
+    \hline
+    等差 & $S_n=\dfrac{a_1+a_n}{2}n$ \\[.6em]
+    等比 & $S_n=\dfrac{a_1(1-r^n)}{1-r}$ \\
+    \hline
+  \end{tabular}
+\end{center}
+
+\MMConfirmationSubsection{一時的に全段幅を使う}
+
+$1$ 段に収まらない式は，式を分けるか，次のように一時的に全段幅へ逃がす．
+
+\begin{mmwideblock}
+  \[
+    \sum_{k=1}^{n}k(k+1)(k+2)(k+3)
+      =\dfrac{n(n+1)(n+2)(n+3)(n+4)}{5},\qquad
+    \sum_{k=1}^{n}k^4=\dfrac{n(n+1)(2n+1)(3n^2+3n-1)}{30}
+  \]
+\end{mmwideblock}
+
+\MMConfirmationSection{行分割と改ページ}
+
+\MMLead{既定で有効な工夫は目に見えない．段の頭や末尾に取り残される
+$1$ 行をなくし，狭い段でも行があふれないようにする．}
+
+段の末尾に段落の第 $1$ 行だけが残ること，段の先頭に段落の最終行だけが
+置かれることを，いずれも禁じている．長い \verb|align*| は段をまたげるので，
+段の下に大きな空きが生まれにくい．行内の長い式は関係記号のあとで折り返せる．
+
+たとえば $\left(\sum_{k=1}^{n}a_kb_k\right)^2\leq
+\left(\sum_{k=1}^{n}a_k^2\right)\left(\sum_{k=1}^{n}b_k^2\right)$
+のような式は，狭い段でも $\leq$ の位置で分割できる．
+
+\MMConfirmationGeneralNote{これらは \texttt{penalties} オプションで
+まとめて無効にできる．}
+
+\MMConfirmationSection{読者が疲れにくい版}
+
+\MMLead{長時間読ませる記事には，第三の密度 \texttt{density=airy} を使う．
+行送り，別行数式の前後，\texttt{align} の行間がまとめて開く．}
+
+\begin{verbatim}
+\usepackage[density=airy,interspacing]{surikumi}
+\end{verbatim}
+
+既存の \texttt{compact} と \texttt{standard} の値は変わらないので，
+既刊の紙面は影響を受けない．
+
+\MMConfirmationSection*{付録：柱と段間罫の確認}
+
+以下は，柱と段間罫の見え方を確かめるための本文である．
+柱は記事の扉には出ず，$2$ ページ目以降に出る．
+段間罫は段の高さに合わせて引かれるため，段が短いページでは短くなる．
+
+数列 $\{a_n\}$ が\MMTerm{等差数列}であるとは，$a_{n+1}-a_n$ が $n$ に
+よらず一定であることをいう．この一定値を公差といい，$d$ で表す．
+一般項は $a_n=a_1+(n-1)d$ であり，和 $S_n=\sum_{k=1}^{n}a_k$ は
+初項と末項の平均に項数を掛けて
+\[
+  S_n=\dfrac{a_1+a_n}{2}n
+\]
+となる．末項 $a_n$ を代入すれば $S_n=\dfrac{2a_1+(n-1)d}{2}n$ とも書ける．
+
+\MMTerm{等比数列}では $a_{n+1}/a_n$ が一定であり，この値を公比という．
+一般項は $a_n=a_1r^{n-1}$ である．和は $r\neq1$ のとき
+\[
+  S_n=\dfrac{a_1(1-r^n)}{1-r}
+\]
+であり，$r=1$ のときは $S_n=na_1$ となる．
+$r=1$ を分母に代入できないので，\MMKenten{必ず}場合を分ける．
+
+階差数列を $b_n=a_{n+1}-a_n$ とおくと，$n\geq2$ のとき
+\[
+  a_n=a_1+\sum_{k=1}^{n-1}b_k
+\]
+が成り立つ．この式は $n=1$ では使えないため，$n=1$ の場合を別に確かめる．
+和から一般項を求めるときも同じで，$a_n=S_n-S_{n-1}$ は $n\geq2$ でしか
+使えない．$n=1$ では $a_1=S_1$ を用いる．
+
+\MMSummary{一般項の公式も和の公式も，使える $n$ の範囲がある．
+範囲の端では，必ずもとの定義に戻って確かめる．}
+
+\end{document}

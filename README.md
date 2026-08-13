@@ -13,17 +13,31 @@ LuaLaTeX パッケージである．JIS B5 判・2段組を基本に，講義，
 - 例題，問題，解答，別解，注記のための部品
 - 確認記事向けの節見出し，コメント，注釈，証明表示
 - 行内式と別行数式で大きさをそろえ，上下限を上下に置く `\sum`
-- TeX で生成する12種類の独自見出しパターン
+- TeX で生成する31種類の独自見出しパターン（幾何 12・和柄 10・数学的モチーフ 9）
+- 背景パターンの濃度・色味・寸法の制御（`pattern-tone` / `pattern-accent` / `pattern-scale`）
+- 形で意味を分ける確認記号 9 種と，斜線入り／黒塗りによる対象読者の区別
+- 狭い段のための行分割・改ページ制御（泣き別れ抑制，長い別行数式の段またぎ）
+- 圏点，用語のゴシック，ルビ，リード文，公式囲み，まとめ，図表キャプション
+- 1 段に収まらない式を逃がす，一時的な全段幅ブロック `mmwideblock`
+- 柱，段の内容の高さに合わせて伸縮する段間罫，和欧間アキ，第三の密度
+  `density=airy`（いずれもオプトイン）
 
 ## 必要な環境
 
 - LuaLaTeX
 - `jlreq`
 - `luatexja-fontspec`
+- `unicode-math` と TeX Gyre Termes Math
 - `tikz`，`tcolorbox`，`amsmath`，`enumitem` など
 
-TeX Live の標準的なフルインストールを想定している．Noto CJK と
-TeX Gyre が利用可能な場合は既定書体として使用する．
+TeX Live の標準的なフルインストールを想定している．和文は Noto CJK JP を
+優先し，同じ設計を別名で提供する Noto Serif JP／Noto Sans JP の可変フォント
+しか無い環境では，ウェイト軸を指定して同等の太さを得る．どちらも無ければ
+jlreq の既定書体になる．欧文は TeX Gyre を使用する．数式は欧文本文と
+そろえて TeX Gyre Termes Math で組む．`unicode-math` を使うため，
+原稿側で `amssymb` や `bm` を読み込まない（`\bm` は `\symbf` の別名として
+使える）．数式書体は `mathfontname` で差し替え，`mathfont=false` で
+無効にできる．
 
 ## 使い方
 

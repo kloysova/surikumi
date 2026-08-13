@@ -52,6 +52,62 @@
 \hspace{6em}
 \MMConfirmationFilledNoteMark
 
+\MMConfirmationSubsection*{形と意味の一覧}
+
+\noindent
+\begin{tabular}{@{}c@{\hspace{1.6em}}c@{\hspace{1.6em}}l@{}}
+  \MMConfirmationStripedMark          & \MMConfirmationFilledMark
+    & 正方形：コメント \\[.35\baselineskip]
+  \MMConfirmationStripedNoteMark      & \MMConfirmationFilledNoteMark
+    & 矢印＋注：注釈 \\[.35\baselineskip]
+  \MMConfirmationStripedPointMark     & \MMConfirmationFilledPointMark
+    & 三角形：要点 \\[.35\baselineskip]
+  \MMConfirmationStripedCautionMark   & \MMConfirmationFilledCautionMark
+    & 菱形：注意，誤りやすい点 \\[.35\baselineskip]
+  \MMConfirmationStripedHintMark      & \MMConfirmationFilledHintMark
+    & 六角形：方針，着眼 \\[.35\baselineskip]
+  \MMConfirmationStripedFormulaMark   & \MMConfirmationFilledFormulaMark
+    & 円：定義，定理，公式 \\[.35\baselineskip]
+  \MMConfirmationStripedCheckMark     & \MMConfirmationFilledCheckMark
+    & 二重丸：検算，確かめ \\[.35\baselineskip]
+  \MMConfirmationStripedExtensionMark & \MMConfirmationFilledExtensionMark
+    & 五角形：発展，大学範囲 \\[.35\baselineskip]
+  \MMConfirmationStripedFigureMark    & \MMConfirmationFilledFigureMark
+    & 扇形：図を見よ \\
+\end{tabular}
+
+\MMConfirmationSubsection*{斜線の位相：同じ記号は紙面のどこでも同一}
+
+\noindent
+\MMConfirmationStripedPointMark\hspace{3.1em}%
+\MMConfirmationStripedPointMark\hspace{5.7em}%
+\MMConfirmationStripedPointMark\hspace{2.3em}%
+\MMConfirmationStripedPointMark\par
+\noindent
+\hspace{1.5em}\MMConfirmationStripedCautionMark\hspace{4.3em}%
+\MMConfirmationStripedCautionMark\hspace{6.9em}%
+\MMConfirmationStripedCautionMark\par
+\noindent
+\hspace{.7em}\MMConfirmationStripedFormulaMark\hspace{3.7em}%
+\MMConfirmationStripedFormulaMark\hspace{8.1em}%
+\MMConfirmationStripedFormulaMark\par
+\noindent
+\hspace{2.2em}\MMConfirmationStripedHintMark\hspace{5.3em}%
+\MMConfirmationStripedHintMark\hspace{3.9em}%
+\MMConfirmationStripedHintMark\par
+\noindent
+\hspace{1.1em}\MMConfirmationStripedExtensionMark\hspace{6.4em}%
+\MMConfirmationStripedExtensionMark\hspace{4.6em}%
+\MMConfirmationStripedExtensionMark\par
+\noindent
+\hspace{2.9em}\MMConfirmationStripedFigureMark\hspace{3.3em}%
+\MMConfirmationStripedFigureMark\hspace{7.2em}%
+\MMConfirmationStripedFigureMark\par
+\noindent
+\hspace{1.9em}\MMConfirmationStripedCheckMark\hspace{5.1em}%
+\MMConfirmationStripedCheckMark\hspace{6.6em}%
+\MMConfirmationStripedCheckMark
+
 \MMConfirmationSubsection*{本文中の使用例}
 
 \MMConfirmationGeneralComment{斜線入り正方形は，すべての読者に向けたコメントを表す．}
@@ -61,5 +117,68 @@
 \MMConfirmationGeneralNote{斜線入りの「矢印＋注」は，すべての読者に向けた注釈を表す．}
 
 \MMConfirmationAdvancedNote{黒塗りの「矢印＋注」は，意欲的な読者に向けた注釈を表す．}
+
+\MMConfirmationGeneralPoint{等差数列の和は，初項と末項の平均に項数を掛けたものである．}
+
+\MMConfirmationGeneralCaution{和から一般項を求めたときは，$n=1$ を必ず別に確かめる．}
+
+\MMConfirmationGeneralHint{差を取って中間項を消すことを先に考える．}
+
+\MMConfirmationGeneralFormula{$\sum_{k=1}^{n}k=\dfrac{n(n+1)}{2}$ を出発点とする．}
+
+\MMConfirmationGeneralCheck{$n=1,2$ を代入して，得られた式を確かめる．}
+
+\MMConfirmationAdvancedExtension{同じ考え方は，母関数を用いた議論へそのまま延長できる．}
+
+\MMConfirmationGeneralFigure{$y=f(x)$ と $y=x$ の交点の位置を図で確かめる．}
+
+\MMConfirmationSubsection*{複数段落・別行数式を含む例}
+
+\begin{mmconfirmationgeneralhint}[1]
+まず差を作る．
+\[
+  \sum_{k=1}^{n}(b_{k+1}-b_k)=b_{n+1}-b_1
+\]
+この形に持ち込めれば，中間項はすべて消える．
+\end{mmconfirmationgeneralhint}
+
+\begin{mmconfirmationadvancedcaution}[2]
+$r=1$ のときは等比数列の和の公式が使えない．
+\[
+  S_n=\dfrac{a(1-r^{n})}{1-r}\qquad(r\neq1)
+\]
+分母が $0$ になる場合を必ず分けて書く．
+\end{mmconfirmationadvancedcaution}
+
+\MMConfirmationSubsection*{ラベル・数値記号}
+
+\noindent
+\MMBlackLabel{例題}\hspace{.6em}%
+\MMOutlineLabel{例題}\hspace{.6em}%
+\MMTintLabel{例題}\hspace{.6em}%
+\MMSolutionLabel{解}\hspace{1.6em}%
+\MMMockNumber{1}\hspace{.6em}%
+\MMOutlineNumber{2}\hspace{.6em}%
+\MMSquareNumber{3}\hspace{.6em}%
+\MMFilledSquareNumber{4}
+
+\medskip
+\noindent
+難易 \MMDifficultyDots{3}{5}\hspace{1.6em}%
+難易 \MMDifficultyDots{1}{5}\hspace{1.6em}%
+難易 \MMDifficultyDots{5}{5}\hspace{1.6em}%
+従来表記 \MMDifficulty{B}{25}\hspace{1.6em}%
+空欄 \MMBlank[8mm]
+
+\MMConfirmationSubsection*{答の終わりと参照}
+
+\begin{mmconfirmationproof}
+$n=1$ のとき命題は成り立つ．$n=k$ で成り立つと仮定すると，
+$n=k+1$ でも成り立つ．よって，すべての自然数 $n$ について成り立つ．
+\MMQED
+\end{mmconfirmationproof}
+
+\noindent
+同じ手法は数学的帰納法の標準形である\MMSeeAlso{本誌 12 ページ}．
 
 \end{document}

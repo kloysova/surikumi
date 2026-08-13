@@ -8,6 +8,7 @@ build/
 *.out
 *.pdf
 *.synctex.gz
+*.ltjruby
 
 # Editor and operating-system files
 .DS_Store

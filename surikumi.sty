@@ -20,7 +20,31 @@
 \DeclareBoolOption[true]{footer}
 \DeclareStringOption[8pt]{bodyfontsize}
 \DeclareStringOption[10.8pt]{bodyleading}
+% `airy' opens the basic leading, but only for a document that did not name
+% one of its own.  Comparing the value against the default cannot tell the
+% two apart, so the key remembers that it was used.
+\newif\ifsmag@bodyleadinggiven
+\define@key{smag}{bodyleading}{%
+  \def\smag@bodyleading{#1}%
+  \smag@bodyleadinggiventrue
+}
 \DeclareStringOption[compact]{density}
+% Readability layer.  Every switch below is additive, so the appearance of
+% an existing document is unchanged unless it asks for a feature.  Only
+% `penalties' defaults to true: it repairs line- and page-breaking in the
+% narrow two-column measure instead of restyling a page that already
+% breaks well.
+\DeclareBoolOption[true]{penalties}
+\DeclareBoolOption[false]{runninghead}
+\DeclareBoolOption[false]{columnrule}
+\DeclareBoolOption[false]{interspacing}
+% The Latin text face is TeX Gyre Termes, so mathematics has to come from
+% the matching OpenType math font; otherwise every formula, the fixed-size
+% summation below included, is set in Latin Modern and clashes with the
+% surrounding text.  `mathfont' is independent of `fonts': a document that
+% supplies its own text faces usually still wants the formulas to match.
+\DeclareBoolOption[true]{mathfont}
+\DeclareStringOption[TeX Gyre Termes Math]{mathfontname}
 \ProcessKeyvalOptions*
 
 \RequirePackage{luatexja-fontspec}
@@ -28,11 +52,73 @@
 \RequirePackage{graphicx}
 \RequirePackage{tikz}
 \usetikzlibrary{calc,patterns}
-\RequirePackage{amsmath,amssymb}
+% The mathematical-motif patterns are declared through the newer key-driven
+% interface, which allows one declaration to serve several tile sizes.  The
+% classic patterns above keep the older interface and are unaffected: the
+% library only redefines `pattern' and `pattern color' with equivalent code.
+\usetikzlibrary{patterns.meta}
+\RequirePackage{amsmath}
+
+% Mathematics is set in the OpenType math font that matches the Latin text
+% face.  unicode-math has to be loaded after amsmath and before the
+% summation is captured below, because it installs a \sum of its own.
+%
+% amssymb and bm are deliberately kept out of that combination.  Both
+% register legacy symbol fonts, and with either of them in place the
+% \mathchoice further down stops honouring \limits: the range of an inline
+% sum jumps back beside the sigma.  unicode-math already covers every
+% symbol this package and its style guides use, so only the three names it
+% leaves undefined are restored below.
+\newif\ifsmag@unicodemath
+\ifsmag@mathfont
+  \IfFileExists{unicode-math.sty}{%
+    \IfFontExistsTF{\smag@mathfontname}{%
+      \RequirePackage{unicode-math}%
+      % bold-style=ISO keeps vectors bold italic, which is what \bm used to
+      % produce and what the notation style guide follows elsewhere when it
+      % takes its upright d, e and i from ISO 80000-2.  The default would
+      % set \bm{v} upright and only \bm{\omega} slanted.
+      \setmathfont{\smag@mathfontname}[bold-style=ISO]%
+      \smag@unicodemathtrue
+    }{%
+      \PackageWarning{surikumi}%
+        {Math font `\smag@mathfontname' not found;\MessageBreak
+         formulas stay in the default math font}%
+    }%
+  }{%
+    \PackageWarning{surikumi}%
+      {unicode-math not found;\MessageBreak
+       formulas stay in the default math font}%
+  }%
+\fi
+\ifsmag@unicodemath
+  \providecommand{\square}{\mdlgwhtsquare}
+  \providecommand{\blacksquare}{\mdlgblksquare}
+  % The notation style guide asks for \bm.  amsmath brings in amsbsy, whose
+  % \bm builds its bold by overprinting and produces nothing legible in an
+  % OpenType math font, so \bm becomes the name for \symbf here.
+  \let\bm\symbf
+  % Loading either package afterwards silently breaks the fixed-size sum.
+  \AtBeginDocument{%
+    \@ifpackageloaded{amssymb}{%
+      \PackageWarning{surikumi}%
+        {amssymb is loaded on top of unicode-math;\MessageBreak
+         the inline sum will place its range beside the sigma.\MessageBreak
+         Drop amssymb, or pass mathfont=false to surikumi}%
+    }{}%
+    \@ifpackageloaded{bm}{%
+      \PackageWarning{surikumi}%
+        {bm is loaded on top of unicode-math;\MessageBreak
+         the inline sum will place its range beside the sigma.\MessageBreak
+         Use \string\symbf, for which \string\bm\space is an alias here}%
+    }{}%
+  }%
+\else
+  \RequirePackage{amssymb}
+\fi
 
 % In this magazine style, display and inline summations use the same
 % text-style glyph.  Their ranges are always stacked above and below.
-\let\smag@originalsum\sum
 \newcommand{\smag@fixedsum}{%
   \mathop{%
     \mathchoice
@@ -42,13 +128,73 @@
       {\scriptscriptstyle\smag@originalsum}%
   }\limits
 }
-\renewcommand{\sum}{\smag@fixedsum}
+% unicode-math installs its own \sum while it finishes setting up the math
+% font, which happens after this package is read and would silently undo
+% the definition below.  Installing it again at the beginning of the
+% document is what makes it survive.  The guard keeps the capture from
+% pointing \smag@originalsum at \smag@fixedsum itself, which would loop.
+\newcommand{\smag@installfixedsum}{%
+  \ifx\sum\smag@fixedsum\else
+    \let\smag@originalsum\sum
+    \let\sum\smag@fixedsum
+  \fi
+}
+\smag@installfixedsum
+\ifsmag@unicodemath
+  \AtBeginDocument{\smag@installfixedsum}%
+\fi
 
 \RequirePackage{enumitem}
 \RequirePackage[most]{tcolorbox}
 \RequirePackage{fancyhdr}
 \RequirePackage{etoolbox}
 \RequirePackage{contour}
+
+% Optional companions of the readability layer.  Both live in a standard
+% TeX Live installation; the guards keep the package usable on a reduced
+% one, where the affected commands fall back to a plain equivalent.
+\newif\ifsmag@ruby
+\IfFileExists{luatexja-ruby.sty}{%
+  \RequirePackage{luatexja-ruby}%
+  \smag@rubytrue
+}{%
+  \PackageWarning{surikumi}%
+    {luatexja-ruby not found; \string\MMRuby\space and
+     \string\MMKenten\space fall back to Gothic}%
+}
+\newif\ifsmag@strip
+\IfFileExists{cuted.sty}{%
+  \RequirePackage{cuted}%
+  \smag@striptrue
+}{%
+  \PackageWarning{surikumi}%
+    {cuted not found; mmwideblock stays inside its column}%
+}
+
+% cuted balances the material that precedes a full-width block into two
+% columns whose common height it searches for in \cuted@@tempdim@b, but it
+% then packs those columns into boxes of the height it had guessed before
+% the search, \ht@viper.  On a dense page the two columns usually cannot be
+% balanced -- rigid blocks leave no glue to stretch -- so the search ends
+% above the guess, the packed boxes overflow downwards, and the full-width
+% block is printed on top of the last line of a column.  Growing \ht@viper
+% to the height actually used, and asking for the matching extra room on
+% the page, is what keeps the two apart.
+\ifsmag@strip
+  \newcommand{\smag@growviper}{%
+    \ifdim\cuted@@tempdim@b>\ht@viper
+      \advance\@reqcolroom\dimexpr\cuted@@tempdim@b-\ht@viper\relax
+      \ht@viper\cuted@@tempdim@b
+    \fi
+  }%
+  \patchcmd{\@addviper}
+    {\setbox\cuted@@tempbox@var\vbox}
+    {\smag@growviper\setbox\cuted@@tempbox@var\vbox}
+    {}%
+    {\PackageWarning{surikumi}%
+      {Cannot align the columns above a full-width block; \string\stripsep
+       alone has to keep them apart}}%
+\fi
 
 % A coordinated vertical-rhythm system.  Compact mode reduces ordinary
 % leading and the whitespace around mathematics together, while lineskip is
@@ -64,8 +210,12 @@
     \setlength{\jot}{3pt}%
   }{%
     \ifdefstring{\smag@density}{compact}{}{%
-      \PackageWarning{surikumi}%
-        {Unknown density '\smag@density'; using compact}%
+      % `airy' starts from the compact values and opens them afterwards in
+      % \smag@applyairyrhythm, so it is a known name here.
+      \ifdefstring{\smag@density}{airy}{}{%
+        \PackageWarning{surikumi}%
+          {Unknown density '\smag@density'; using compact}%
+      }%
     }%
     \setlength{\lineskip}{.7pt}%
     \setlength{\lineskiplimit}{.2pt}%
@@ -76,6 +226,30 @@
     \setlength{\jot}{.16\baselineskip}%
   }%
 }
+
+% A third vertical rhythm for long reading sessions.  It is applied after
+% \smag@applyverticalrhythm, so `compact' and `standard' keep exactly the
+% values above.  Everything an article needs in order to breathe is moved
+% together: basic leading, the space around displays, and the gap between
+% the rows of an aligned display.
+\newcommand{\smag@applyairyrhythm}{%
+  \ifdefstring{\smag@density}{airy}{%
+    \setlength{\lineskip}{1.3pt}%
+    \setlength{\lineskiplimit}{.55pt}%
+    \setlength{\abovedisplayskip}{.7\baselineskip}%
+    \setlength{\belowdisplayskip}{.7\baselineskip}%
+    \setlength{\abovedisplayshortskip}{.33\baselineskip}%
+    \setlength{\belowdisplayshortskip}{.45\baselineskip}%
+    \setlength{\jot}{.22\baselineskip}%
+  }{}%
+}
+
+% The basic leading belongs to the same decision, so `airy' also opens it.
+% A document that named its own bodyleading keeps that value untouched,
+% even when it happens to have named the default.
+\ifdefstring{\smag@density}{airy}{%
+  \ifsmag@bodyleadinggiven\else\def\smag@bodyleading{12.2pt}\fi
+}{}
 
 \definecolor{SMink}{gray}{0.12}
 \definecolor{SMrule}{gray}{0.38}
@@ -116,19 +290,43 @@
 \newcommand{\SMSeriesFont}{\sffamily\gtfamily\bfseries}
 \newcommand{\SMAuthorMinchoFont}{\rmfamily\mcfamily\bfseries}
 \newcommand{\SMAuthorGothicFont}{\sffamily\gtfamily\bfseries}
+% Noto ships the same designs under two different names.  The static
+% `Noto Serif CJK JP' family carries one file per weight, so a weight is
+% asked for by name.  The newer `Noto Serif JP' variable fonts carry every
+% weight in a single file and expose no named instances at all, so a weight
+% has to be asked for through the wght axis instead; selecting one by name
+% there silently fails and the whole family falls back to jlreq's default.
+% Both spellings are therefore tried, static first.
+\newcommand{\smag@wght}[1]{RawFeature={axis={wght=#1}}}
 \ifsmag@fonts
   \IfFontExistsTF{Noto Serif CJK JP}{%
     \setmainjfont[
       BoldFont=Noto Serif CJK JP Bold,
       YokoFeatures={JFM=jlreq}
     ]{Noto Serif CJK JP}%
-  }{}
+  }{%
+    \IfFontExistsTF{Noto Serif JP}{%
+      \setmainjfont[
+        BoldFont=Noto Serif JP,
+        BoldFeatures={\smag@wght{700}},
+        YokoFeatures={JFM=jlreq}
+      ]{Noto Serif JP}%
+    }{}%
+  }
   \IfFontExistsTF{Noto Sans CJK JP}{%
     \setsansjfont[
       BoldFont=Noto Sans CJK JP Bold,
       YokoFeatures={JFM=jlreq}
     ]{Noto Sans CJK JP}%
-  }{}
+  }{%
+    \IfFontExistsTF{Noto Sans JP}{%
+      \setsansjfont[
+        BoldFont=Noto Sans JP,
+        BoldFeatures={\smag@wght{700}},
+        YokoFeatures={JFM=jlreq}
+      ]{Noto Sans JP}%
+    }{}%
+  }
   \IfFontExistsTF{Noto Sans CJK JP Black}{%
     \newjfontfamily\SMTitleFontJP[
       FakeSlant=.12,
@@ -139,13 +337,35 @@
     ]{Noto Sans CJK JP Black}%
     \renewcommand{\SMTitleFont}{\sffamily\SMTitleFontJP}%
     \renewcommand{\SMSeriesFont}{\sffamily\SMSeriesFontJP}%
-  }{}
+  }{%
+    \IfFontExistsTF{Noto Sans JP}{%
+      \newjfontfamily\SMTitleFontJP[
+        \smag@wght{900},
+        FakeSlant=.12,
+        YokoFeatures={JFM=jlreq}
+      ]{Noto Sans JP}%
+      \newjfontfamily\SMSeriesFontJP[
+        \smag@wght{900},
+        YokoFeatures={JFM=jlreq}
+      ]{Noto Sans JP}%
+      \renewcommand{\SMTitleFont}{\sffamily\SMTitleFontJP}%
+      \renewcommand{\SMSeriesFont}{\sffamily\SMSeriesFontJP}%
+    }{}%
+  }
   \IfFontExistsTF{Noto Serif CJK JP SemiBold}{%
     \newjfontfamily\SMAuthorMinchoFontJP[
       YokoFeatures={JFM=jlreq}
     ]{Noto Serif CJK JP SemiBold}%
     \renewcommand{\SMAuthorMinchoFont}{\rmfamily\SMAuthorMinchoFontJP}%
-  }{}
+  }{%
+    \IfFontExistsTF{Noto Serif JP}{%
+      \newjfontfamily\SMAuthorMinchoFontJP[
+        \smag@wght{600},
+        YokoFeatures={JFM=jlreq}
+      ]{Noto Serif JP}%
+      \renewcommand{\SMAuthorMinchoFont}{\rmfamily\SMAuthorMinchoFontJP}%
+    }{}%
+  }
   \IfFontExistsTF{TeX Gyre Termes}{\setmainfont{TeX Gyre Termes}}{}
   \IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{}
 \fi
@@ -358,22 +578,23 @@
     \pgfpathclose\pgfusepath{fill}%
   }
 
-% Offset rectangular tiles.
+% Offset rectangular tiles.  Only the two cells of one colour are drawn:
+% in a pattern declared `for only' the ink is a single colour supplied from
+% outside, so filling all four cells --- which is what a two-tone reading
+% of the tile would ask for --- covers the whole tile and prints a solid
+% band.  Leaving the other two cells open lets the banner ground show
+% through, which is what makes the chequerboard visible, and it keeps
+% `pattern-tone' and `pattern-accent' working as they do for the rest of
+% the geometric family.
 \pgfdeclarepatternformonly{SMchecker}
   {\pgfpoint{0mm}{0mm}}
   {\pgfpoint{12mm}{8mm}}
   {\pgfpoint{12mm}{8mm}}
   {%
     \pgfsetlinewidth{0pt}%
-    \pgfsetfillcolor{SMpatternA}%
     \pgfpathrectangle{\pgfpoint{0mm}{0mm}}{\pgfpoint{6mm}{4mm}}%
     \pgfusepath{fill}%
     \pgfpathrectangle{\pgfpoint{6mm}{4mm}}{\pgfpoint{6mm}{4mm}}%
-    \pgfusepath{fill}%
-    \pgfsetfillcolor{SMpatternB}%
-    \pgfpathrectangle{\pgfpoint{6mm}{0mm}}{\pgfpoint{6mm}{4mm}}%
-    \pgfusepath{fill}%
-    \pgfpathrectangle{\pgfpoint{0mm}{4mm}}{\pgfpoint{6mm}{4mm}}%
     \pgfusepath{fill}%
   }
 
@@ -456,6 +677,688 @@
     \pgfpathclose\pgfusepath{fill}%
   }
 
+% ---------------------------------------------------------------------------
+% Traditional Japanese geometric motifs (wagara).  These are public-domain
+% designs, redrawn here from scratch with plain pgf paths.  Unlike the twelve
+% patterns above they are declared as inherently coloured patterns, so the
+% grey levels written into the tile (SMrule, SMpale, SMpatternA, SMpatternB)
+% survive into the output instead of collapsing to a single ink.  That keeps
+% the texture pale enough to sit under a 25pt title without a heavy white
+% wash.  Every tile repeats exactly at its edges; shapes that cross an edge
+% are drawn again one period away so the PDF tile clip cannot open a seam.
+% ---------------------------------------------------------------------------
+
+% Asanoha (hemp leaf): six-pointed stars on a triangular net.  Airy line work
+% for feature articles that want a classical, slightly formal opening.
+\pgfdeclarepatterninherentlycolored{SMasanoha}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {\pgfpoint{16mm}{12mm}}
+  {%
+    \pgfsetlinewidth{.3pt}%
+    \pgfsetstrokecolor{SMrule}%
+    % One rhombic cell carries two lattice triangles; the list covers the tile
+    % plus one ring of neighbours so the clipped edges stay continuous.
+    \foreach \px/\py in {%
+      -12/-6,-4/-6,4/-6,12/-6,%
+      -8/0,0/0,8/0,16/0,%
+      -4/6,4/6,12/6,20/6}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\px mm}{\py mm}}%
+        \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{8mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{4mm}{6mm}}%
+        \pgfpathmoveto{\pgfpoint{8mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{4mm}{6mm}}%
+        \pgfpathmoveto{\pgfpoint{4mm}{2mm}}%
+        \pgfpathlineto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{4mm}{2mm}}%
+        \pgfpathlineto{\pgfpoint{8mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{4mm}{2mm}}%
+        \pgfpathlineto{\pgfpoint{4mm}{6mm}}%
+        \pgfpathmoveto{\pgfpoint{8mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{8mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{8mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{4mm}{6mm}}%
+        \pgfpathmoveto{\pgfpoint{8mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{12mm}{6mm}}%
+        \pgfusepath{stroke}%
+      \end{pgfscope}%
+    }%
+  }
+
+% Seigaiha (blue ocean waves): rows of concentric fans, each row overlapping
+% the one below.  A calm flowing ground, good for essays and for openings
+% about continuity or limits.  The tile is 16mm by 8mm because the circles
+% sit on a square lattice turned by 45 degrees whose spacing is 4mm times
+% root two; that lattice covers the plane exactly, with no gap and no seam.
+\pgfdeclarepatterninherentlycolored{SMseigaiha}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{16mm}{8mm}}
+  {\pgfpoint{16mm}{8mm}}
+  {%
+    \pgfsetlinewidth{.32pt}%
+    % Painter's order, lowest row first: every fan first lays down its own
+    % pale ground and then its rings, so a fan hides the one behind it just
+    % as it does in the woven original.  Circles centred above the tile are
+    % irrelevant here because they only touch its top edge.
+    \foreach \cx/\cy in {0/0,8/0,16/0,4/4,12/4,0/8,8/8,16/8}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\cx mm}{\cy mm}}%
+        \pgfsetfillcolor{SMpale}%
+        \pgfpathcircle{\pgfpointorigin}{4mm}%
+        \pgfusepath{fill}%
+        \pgfsetstrokecolor{SMrule}%
+        \pgfpathcircle{\pgfpointorigin}{4mm}%
+        \pgfpathcircle{\pgfpointorigin}{3mm}%
+        \pgfpathcircle{\pgfpointorigin}{2mm}%
+        \pgfpathcircle{\pgfpointorigin}{1mm}%
+        \pgfusepath{stroke}%
+      \end{pgfscope}%
+    }%
+  }
+
+% Shippou (seven treasures): interlocking circles that leave four-petal
+% openings.  The lightest of the wagara set; safe under long titles.
+\pgfdeclarepatterninherentlycolored{SMshippou}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{.3pt}%
+    \pgfsetstrokecolor{SMrule}%
+    % Semi-axes are half the lattice diagonal, so every circle runs through
+    % the centre of its cell and the petals close exactly.
+    \foreach \cx in {0,6,12}{%
+      \foreach \cy in {0,4,8}{%
+        \pgfpathellipse{\pgfpoint{\cx mm}{\cy mm}}%
+          {\pgfpoint{4.243mm}{0mm}}{\pgfpoint{0mm}{2.828mm}}%
+      }%
+    }%
+    \pgfusepath{stroke}%
+  }
+
+% Kikkou (tortoise shell): a plain hexagonal net.  Reads as an orderly grid,
+% a good ground for reference and formula articles.
+\pgfdeclarepatterninherentlycolored{SMkikkou}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{.34pt}%
+    \pgfsetstrokecolor{SMrule}%
+    % Flat-top cells on the lattice generated by (12mm,0) and (6mm,4mm); the
+    % cell is very slightly taller than a regular hexagon so that the house
+    % 12mm by 8mm tile can be kept.
+    \foreach \cx/\cy in {6/-4,0/0,12/0,6/4,0/8,12/8,6/12}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\cx mm}{\cy mm}}%
+        \pgfpathmoveto{\pgfpoint{4mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{2mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{-2mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{-4mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{-2mm}{-4mm}}%
+        \pgfpathlineto{\pgfpoint{2mm}{-4mm}}%
+        \pgfpathclose
+        \pgfusepath{stroke}%
+      \end{pgfscope}%
+    }%
+  }
+
+% Sayagata: the linked key fret of figured silk.  Firm and architectural,
+% with long shallow diagonals; suits algebra, proof and analysis articles.
+% The tile is square and larger than the house sizes because the fret only
+% closes on a square lattice tilted by arctan(2/3): with an arm of three
+% units and a hook of two, the smallest upright period is 26 units each way.
+% The motif itself is still about 5.5mm across, so it repeats often enough.
+\pgfdeclarepatterninherentlycolored{SMsayagata}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{24mm}{24mm}}
+  {\pgfpoint{24mm}{24mm}}
+  {%
+    \pgfsetlinewidth{.34pt}%
+    \pgfsetstrokecolor{SMrule}%
+    % Unit u = 24mm/26.  Hook tips meet exactly at the lattice vectors
+    % (6u,4u) and (4u,-6u), which is what links the fret into one line.
+    \foreach \a in {-5,...,5}{%
+      \foreach \b in {-5,...,5}{%
+        \begin{pgfscope}%
+          \pgftransformshift{\pgfpointadd
+            {\pgfpointscale{\a}{\pgfpoint{5.5385mm}{3.6923mm}}}
+            {\pgfpointscale{\b}{\pgfpoint{3.6923mm}{-5.5385mm}}}}%
+          \pgfpathmoveto{\pgfpoint{-1.8462mm}{2.7692mm}}%
+          \pgfpathlineto{\pgfpoint{0mm}{2.7692mm}}%
+          \pgfpathlineto{\pgfpoint{0mm}{-2.7692mm}}%
+          \pgfpathlineto{\pgfpoint{1.8462mm}{-2.7692mm}}%
+          \pgfpathmoveto{\pgfpoint{-2.7692mm}{-1.8462mm}}%
+          \pgfpathlineto{\pgfpoint{-2.7692mm}{0mm}}%
+          \pgfpathlineto{\pgfpoint{2.7692mm}{0mm}}%
+          \pgfpathlineto{\pgfpoint{2.7692mm}{1.8462mm}}%
+          \pgfusepath{stroke}%
+        \end{pgfscope}%
+      }%
+    }%
+  }
+
+% Kagome (basket eye): three families of straight lines leaving triangles and
+% hexagons.  Very open; the quietest ground for a long title.
+\pgfdeclarepatterninherentlycolored{SMkagome}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{.34pt}%
+    \pgfsetstrokecolor{SMrule}%
+    % The horizontal family is offset by half a step so that no three lines
+    % are concurrent; that offset is exactly what opens the hexagons.
+    \pgfpathmoveto{\pgfpoint{0mm}{2mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{2mm}}%
+    \pgfpathmoveto{\pgfpoint{0mm}{6mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{6mm}}%
+    \foreach \ax/\bx in {-6/0,0/6,6/12,12/18}{%
+      \pgfpathmoveto{\pgfpoint{\ax mm}{0mm}}%
+      \pgfpathlineto{\pgfpoint{\bx mm}{8mm}}%
+    }%
+    \foreach \ax/\bx in {0/-6,6/0,12/6,18/12}{%
+      \pgfpathmoveto{\pgfpoint{\ax mm}{0mm}}%
+      \pgfpathlineto{\pgfpoint{\bx mm}{8mm}}%
+    }%
+    \pgfusepath{stroke}%
+  }
+
+% Yagasuri (arrow feather): pale interlocking fletchings in vertical bands.
+% The lightest two-tone fill here, with a brisk upward rhythm; a good ground
+% for opening pages and for series that run every month.
+\pgfdeclarepatterninherentlycolored{SMyagasuri}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    % The notch at the foot of a feather is the same chevron as the head of
+    % the one below, so a column repeats every 4mm without a joint.
+    \foreach \cx/\tone in {0/SMpatternA,6/SMpale}{%
+      \begin{pgfscope}%
+        \pgfsetfillcolor{\tone}%
+        \foreach \cy in {-4,0,4}{%
+          \begin{pgfscope}%
+            \pgftransformshift{\pgfpoint{\cx mm}{\cy mm}}%
+            \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+            \pgfpathlineto{\pgfpoint{3mm}{1.5mm}}%
+            \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+            \pgfpathlineto{\pgfpoint{6mm}{4mm}}%
+            \pgfpathlineto{\pgfpoint{3mm}{5.5mm}}%
+            \pgfpathlineto{\pgfpoint{0mm}{4mm}}%
+            \pgfpathclose
+            \pgfusepath{fill}%
+          \end{pgfscope}%
+        }%
+      \end{pgfscope}%
+    }%
+    \pgfsetlinewidth{.3pt}%
+    \pgfsetstrokecolor{SMband}%
+    \foreach \cy in {0,4,8}{%
+      \foreach \cx in {0,6}{%
+        \begin{pgfscope}%
+          \pgftransformshift{\pgfpoint{\cx mm}{\cy mm}}%
+          \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+          \pgfpathlineto{\pgfpoint{3mm}{1.5mm}}%
+          \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+          \pgfusepath{stroke}%
+        \end{pgfscope}%
+      }%
+    }%
+  }
+
+% Tatewaku (rising steam): paired wavy bands that swell and pinch.  A soft
+% mid-tone fill, the most organic ground in the set.
+\pgfdeclarepatterninherentlycolored{SMtatewaku}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    % Each band is drawn twice, one period apart, because the swell of a band
+    % reaches past the tile edge and must be supplied on both sides.
+    \foreach \sx in {-12,0}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\sx mm}{0mm}}%
+        \pgfsetfillcolor{SMpatternB}%
+        \pgfpathmoveto{\pgfpoint{6mm}{0mm}}%
+        \pgfpathcurveto{\pgfpoint{4.3mm}{1.3mm}}{\pgfpoint{4.3mm}{2.7mm}}
+          {\pgfpoint{6mm}{4mm}}%
+        \pgfpathcurveto{\pgfpoint{7.7mm}{5.3mm}}{\pgfpoint{7.7mm}{6.7mm}}
+          {\pgfpoint{6mm}{8mm}}%
+        \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+        \pgfpathcurveto{\pgfpoint{10.3mm}{6.7mm}}{\pgfpoint{10.3mm}{5.3mm}}
+          {\pgfpoint{12mm}{4mm}}%
+        \pgfpathcurveto{\pgfpoint{13.7mm}{2.7mm}}{\pgfpoint{13.7mm}{1.3mm}}
+          {\pgfpoint{12mm}{0mm}}%
+        \pgfpathclose
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+    \foreach \sx in {0,12}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\sx mm}{0mm}}%
+        \pgfsetfillcolor{SMpatternA}%
+        \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathcurveto{\pgfpoint{1.7mm}{1.3mm}}{\pgfpoint{1.7mm}{2.7mm}}
+          {\pgfpoint{0mm}{4mm}}%
+        \pgfpathcurveto{\pgfpoint{-1.7mm}{5.3mm}}{\pgfpoint{-1.7mm}{6.7mm}}
+          {\pgfpoint{0mm}{8mm}}%
+        \pgfpathlineto{\pgfpoint{6mm}{8mm}}%
+        \pgfpathcurveto{\pgfpoint{7.7mm}{6.7mm}}{\pgfpoint{7.7mm}{5.3mm}}
+          {\pgfpoint{6mm}{4mm}}%
+        \pgfpathcurveto{\pgfpoint{4.3mm}{2.7mm}}{\pgfpoint{4.3mm}{1.3mm}}
+          {\pgfpoint{6mm}{0mm}}%
+        \pgfpathclose
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+  }
+
+% Mitsukuzushi (three-bar break): groups of three rules turning by ninety
+% degrees, a woven mat.  Even and quiet, useful for drill and practice pages.
+\pgfdeclarepatterninherentlycolored{SMmitsukuzushi}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    \pgfsetfillcolor{SMpale}%
+    \pgfpathrectangle{\pgfpoint{0mm}{0mm}}{\pgfpoint{12mm}{8mm}}%
+    \pgfusepath{fill}%
+    % Two by two blocks of 6mm by 4mm; the bars keep one weight in both
+    % directions and only the gaps change, so the weave stays even.
+    \pgfsetfillcolor{SMpatternA}%
+    \foreach \bx/\by in {0/0,6/4}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\bx mm}{\by mm}}%
+        \foreach \r in {0.55,1.7,2.85}{%
+          \pgfpathrectangle{\pgfpoint{0mm}{\r mm}}{\pgfpoint{6mm}{.6mm}}%
+        }%
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+    \pgfsetfillcolor{SMpatternB}%
+    \foreach \bx/\by in {6/0,0/4}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\bx mm}{\by mm}}%
+        \foreach \c in {1.05,2.7,4.35}{%
+          \pgfpathrectangle{\pgfpoint{\c mm}{0mm}}{\pgfpoint{.6mm}{4mm}}%
+        }%
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+  }
+
+% Ajiro (plaited bamboo): slanted planks that reverse every row.  The densest
+% wagara ground here; reserve it for short titles and cover-style openings.
+\pgfdeclarepatterninherentlycolored{SMajiro}
+  {\pgfpoint{0mm}{0mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {\pgfpoint{12mm}{8mm}}
+  {%
+    \pgfsetlinewidth{0pt}%
+    % Lower course leans right, upper course leans left; each course is paved
+    % by translates of one parallelogram, so the rows meet without a gap.
+    \foreach \sx/\tone in {-6/SMpatternB,0/SMpatternA,6/SMpatternB,12/SMpatternA}{%
+      \begin{pgfscope}%
+        \pgfsetfillcolor{\tone}%
+        \pgftransformshift{\pgfpoint{\sx mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{6mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{9mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{3mm}{4mm}}%
+        \pgfpathclose
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+    \foreach \sx/\tone in {-6/SMpatternA,0/SMpatternB,6/SMpatternA,12/SMpatternB}{%
+      \begin{pgfscope}%
+        \pgfsetfillcolor{\tone}%
+        \pgftransformshift{\pgfpoint{\sx mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{12mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{9mm}{8mm}}%
+        \pgfpathlineto{\pgfpoint{3mm}{8mm}}%
+        \pgfpathclose
+        \pgfusepath{fill}%
+      \end{pgfscope}%
+    }%
+    \pgfsetlinewidth{.3pt}%
+    \pgfsetstrokecolor{SMpale}%
+    \foreach \sx in {-6,0,6,12}{%
+      \begin{pgfscope}%
+        \pgftransformshift{\pgfpoint{\sx mm}{0mm}}%
+        \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+        \pgfpathlineto{\pgfpoint{3mm}{4mm}}%
+        \pgfpathmoveto{\pgfpoint{6mm}{4mm}}%
+        \pgfpathlineto{\pgfpoint{3mm}{8mm}}%
+        \pgfusepath{stroke}%
+      \end{pgfscope}%
+    }%
+    \pgfpathmoveto{\pgfpoint{0mm}{0mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{0mm}}%
+    \pgfpathmoveto{\pgfpoint{0mm}{4mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{4mm}}%
+    \pgfpathmoveto{\pgfpoint{0mm}{8mm}}%
+    \pgfpathlineto{\pgfpoint{12mm}{8mm}}%
+    \pgfusepath{stroke}%
+  }
+
+% --- Mathematical-motif patterns -----------------------------------------
+%
+% The nine patterns below evoke mathematics itself rather than ornament.
+% They are declared through the key-driven pattern interface so that a
+% single declaration serves every tile magnification: the `SM scale'
+% pattern key multiplies both the tile and the linework, and the surikumi
+% `pattern-scale' key feeds it.  All of them are uncolored patterns, so the
+% ink is supplied from outside by `pattern color'; see the pattern-tone
+% machinery further down.  Two apparent grey levels are therefore obtained
+% from coverage (solid areas against hatched or hairline areas) rather than
+% from two fill colours.
+\def\smag@ps{\pgfkeysvalueof{/pgf/pattern keys/SM scale}}
+
+% Truchet tiles: quarter arcs meeting at the mid-point of every cell edge,
+% with orientations chosen so that the eye reads wandering closed curves.
+% A very even, quiet line texture; the safest choice under long titles.
+\pgfdeclarepattern{
+  name=SMtruchet,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{16}{12}},
+  tile size={\pgfpointxy{16}{12}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.5pt*\smag@k}%
+    \foreach \cx/\cy/\ori in {%
+      0/0/0,4/0/1,8/0/1,12/0/0,%
+      0/4/1,4/4/1,8/4/0,12/4/1,%
+      0/8/0,4/8/0,8/8/1,12/8/1}{%
+      \ifnum\ori=0
+        \pgfpathmoveto{\pgfpointxy{\cx+2}{\cy}}%
+        \pgfpatharc{0}{90}{2mm*\smag@k}%
+        \pgfpathmoveto{\pgfpointxy{\cx+4}{\cy+2}}%
+        \pgfpatharc{-90}{-180}{2mm*\smag@k}%
+      \else
+        \pgfpathmoveto{\pgfpointxy{\cx+4}{\cy+2}}%
+        \pgfpatharc{90}{180}{2mm*\smag@k}%
+        \pgfpathmoveto{\pgfpointxy{\cx+2}{\cy+4}}%
+        \pgfpatharc{0}{-90}{2mm*\smag@k}%
+      \fi
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
+% Isometric cubes on the rhombille lattice.  One face is solid, one is
+% hatched and one is left open, so the block reads three dimensionally even
+% though a single ink is available.  The heaviest of the new patterns.
+\pgfdeclarepattern{
+  name=SMisocubes,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \foreach \hx/\hy in {0/0,12/0,0/8,12/8,6/4}{%
+      \pgfpathmoveto{\pgfpointxy{\hx}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx-2}{\hy-4}}%
+      \pgfpathlineto{\pgfpointxy{\hx+2}{\hy-4}}%
+      \pgfpathlineto{\pgfpointxy{\hx+4}{\hy}}%
+      \pgfpathclose
+    }%
+    \pgfusepath{fill}%
+    \pgfsetlinewidth{.45pt*\smag@k}%
+    \foreach \hx/\hy in {0/0,12/0,0/8,12/8,6/4}{%
+      \foreach \s in {0.125,0.375,0.625,0.875}{%
+        \pgfpathmoveto{\pgfpointxy{\hx-2*\s}{\hy+4*\s}}%
+        \pgfpathlineto{\pgfpointxy{\hx-2*\s-2}{\hy+4*\s-4}}%
+      }%
+    }%
+    \pgfusepath{stroke}%
+    \pgfsetlinewidth{.32pt*\smag@k}%
+    \foreach \hx/\hy in {0/0,12/0,0/8,12/8,6/4}{%
+      \pgfpathmoveto{\pgfpointxy{\hx+4}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx+2}{\hy+4}}%
+      \pgfpathlineto{\pgfpointxy{\hx-2}{\hy+4}}%
+      \pgfpathlineto{\pgfpointxy{\hx-4}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx-2}{\hy-4}}%
+      \pgfpathlineto{\pgfpointxy{\hx+2}{\hy-4}}%
+      \pgfpathclose
+      \pgfpathmoveto{\pgfpointxy{\hx}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx+4}{\hy}}%
+      \pgfpathmoveto{\pgfpointxy{\hx}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx-2}{\hy+4}}%
+      \pgfpathmoveto{\pgfpointxy{\hx}{\hy}}%
+      \pgfpathlineto{\pgfpointxy{\hx-2}{\hy-4}}%
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
+% Sierpinski gaskets to depth three, one gasket per tile, with the parent
+% triangle outlined.  Roughly a fifth of the tile is inked, so it stays
+% light under a long title while still reading as a recursive figure.
+\pgfdeclarepattern{
+  name=SMsierpinski,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{16}{12}},
+  tile size={\pgfpointxy{16}{12}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \foreach \ax/\ay in {0/0,8/0,4/6}{%
+      \foreach \bx/\by in {0/0,4/0,2/3}{%
+        \foreach \cx/\cy in {0/0,2/0,1/1.5}{%
+          \pgfpathmoveto{\pgfpointxy{\ax+\bx+\cx}{\ay+\by+\cy}}%
+          \pgfpathlineto{\pgfpointxy{\ax+\bx+\cx+2}{\ay+\by+\cy}}%
+          \pgfpathlineto{\pgfpointxy{\ax+\bx+\cx+1}{\ay+\by+\cy+1.5}}%
+          \pgfpathclose
+        }%
+      }%
+    }%
+    \pgfusepath{fill}%
+    \pgfsetlinewidth{.3pt*\smag@k}%
+    \pgfpathmoveto{\pgfpointxy{0}{0}}%
+    \pgfpathlineto{\pgfpointxy{16}{0}}%
+    \pgfpathlineto{\pgfpointxy{8}{12}}%
+    \pgfpathclose
+    \pgfusepath{stroke}%
+  },
+}
+
+% Lattice points with one fundamental parallelogram drawn through them.
+% The lightest of the new patterns; good under white reversed titles and as
+% a background for the slim pattern rule.
+\pgfdeclarepattern{
+  name=SMlattice,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.4pt*\smag@k}%
+    \pgfpathmoveto{\pgfpointxy{0}{0}}%
+    \pgfpathlineto{\pgfpointxy{8}{0}}%
+    \pgfpathlineto{\pgfpointxy{12}{8}}%
+    \pgfpathlineto{\pgfpointxy{4}{8}}%
+    \pgfpathclose
+    \pgfusepath{stroke}%
+    \foreach \dx in {0,4,8,12}{%
+      \foreach \dy in {0,4,8}{%
+        \pgfpathcircle{\pgfpointxy{\dx}{\dy}}{.62mm*\smag@k}%
+      }%
+    }%
+    \pgfusepath{fill}%
+  },
+}
+
+% Concentric circle families centred on two interleaved lattices, so the
+% circles cut one another and produce a faint moire.  Best at larger
+% pattern-scale values, where the interference becomes legible.
+\pgfdeclarepattern{
+  name=SMmoire,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.35pt*\smag@k}%
+    \foreach \rad in {2,4,6}{%
+      \foreach \cx/\cy in {0/0,12/0,0/8,12/8}{%
+        \pgfpathcircle{\pgfpointxy{\cx}{\cy}}{\rad mm*\smag@k}%
+      }%
+    }%
+    \foreach \rad in {2,4}{%
+      \pgfpathcircle{\pgfpointxy{6}{4}}{\rad mm*\smag@k}%
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
+% Curve stitching: one fan of chords per tile, whose envelope is a
+% parabola.  Every chord ends on a tile edge, so the tiled plane shows a
+% repeated family of parabolic arcs over a light rectangular armature.
+\pgfdeclarepattern{
+  name=SMenvelopes,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.34pt*\smag@k}%
+    \foreach \kk in {0,1,...,10}{%
+      \pgfpathmoveto{\pgfpointxy{1.2*\kk}{0}}%
+      \pgfpathlineto{\pgfpointxy{0}{0.8*(10-\kk)}}%
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
+% Eight-pointed stars meeting tip to tip on a square lattice, in the
+% spirit of girih strapwork; the negative space between four stars forms
+% the familiar cross.  An openwork line pattern with a strong grid rhythm.
+\pgfdeclarepattern{
+  name=SMgirih,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.36pt*\smag@k}%
+    \foreach \sx in {0,4,8,12}{%
+      \foreach \sy in {0,4,8}{%
+        \pgfpathmoveto{\pgfpointxy{\sx+2}{\sy}}%
+        \pgfpathlineto{\pgfpointxy{\sx}{\sy+2}}%
+        \pgfpathlineto{\pgfpointxy{\sx-2}{\sy}}%
+        \pgfpathlineto{\pgfpointxy{\sx}{\sy-2}}%
+        \pgfpathclose
+        \pgfpathmoveto{\pgfpointxy{\sx+1.414}{\sy+1.414}}%
+        \pgfpathlineto{\pgfpointxy{\sx-1.414}{\sy+1.414}}%
+        \pgfpathlineto{\pgfpointxy{\sx-1.414}{\sy-1.414}}%
+        \pgfpathlineto{\pgfpointxy{\sx+1.414}{\sy-1.414}}%
+        \pgfpathclose
+      }%
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
+% Circle packing: equal circles in contact along the rows, with a filled
+% disc in every curvilinear triangle.  Reads as an open, airy texture and
+% contrasts clearly with the solid lenses of SMscales.
+\pgfdeclarepattern{
+  name=SMpacking,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.4pt*\smag@k}%
+    \foreach \cx in {0,4,8,12}{%
+      \pgfpathcircle{\pgfpointxy{\cx}{0}}{2mm*\smag@k}%
+      \pgfpathcircle{\pgfpointxy{\cx}{8}}{2mm*\smag@k}%
+    }%
+    \foreach \cx in {2,6,10}{%
+      \pgfpathcircle{\pgfpointxy{\cx}{4}}{2mm*\smag@k}%
+    }%
+    \pgfusepath{stroke}%
+    \foreach \cx in {2,6,10}{%
+      \pgfpathcircle{\pgfpointxy{\cx}{1.333}}{.34mm*\smag@k}%
+      \pgfpathcircle{\pgfpointxy{\cx}{6.667}}{.34mm*\smag@k}%
+    }%
+    \foreach \cx in {0,4,8,12}{%
+      \pgfpathcircle{\pgfpointxy{\cx}{2.667}}{.34mm*\smag@k}%
+      \pgfpathcircle{\pgfpointxy{\cx}{5.333}}{.34mm*\smag@k}%
+    }%
+    \pgfusepath{fill}%
+  },
+}
+
+% Archimedean spirals, one large at the centre of the tile and four
+% quarters meeting at its corners.  The most pictorial of the set; keep it
+% for openings whose title is short.
+\pgfdeclarepattern{
+  name=SMspirals,
+  type=uncolored,
+  parameters={\smag@ps},
+  x={1mm*\smag@ps}, y={1mm*\smag@ps},
+  bottom left={\pgfpointxy{0}{0}},
+  top right={\pgfpointxy{12}{8}},
+  tile size={\pgfpointxy{12}{8}},
+  defaults={SM scale/.initial=1},
+  code={%
+    \edef\smag@k{\smag@ps}%
+    \pgfsetlinewidth{.34pt*\smag@k}%
+    \foreach \sx/\sy/\sr in {6/4/3.4,0/0/2,12/0/2,0/8/2,12/8/2}{%
+      \foreach \t [count=\i] in {0,15,...,900}{%
+        \ifnum\i=1
+          \pgfpathmoveto{%
+            \pgfpointxy{\sx+\sr*\t/900*cos(\t)}{\sy+\sr*\t/900*sin(\t)}}%
+        \else
+          \pgfpathlineto{%
+            \pgfpointxy{\sx+\sr*\t/900*cos(\t)}{\sy+\sr*\t/900*sin(\t)}}%
+        \fi
+      }%
+    }%
+    \pgfusepath{stroke}%
+  },
+}
+
 \makeatletter
 \def\smag@feature{特集\quad 入試数学の要点をつかむ}
 \def\smag@series{講義／数学}
@@ -527,6 +1430,25 @@
   pattern/parquet/.code={\def\smag@pattern{SMparquet}},
   pattern/origami/.code={\def\smag@pattern{SMorigami}},
   pattern/ribbons/.code={\def\smag@pattern{SMribbons}},
+  pattern/asanoha/.code={\def\smag@pattern{SMasanoha}},
+  pattern/seigaiha/.code={\def\smag@pattern{SMseigaiha}},
+  pattern/shippou/.code={\def\smag@pattern{SMshippou}},
+  pattern/kikkou/.code={\def\smag@pattern{SMkikkou}},
+  pattern/sayagata/.code={\def\smag@pattern{SMsayagata}},
+  pattern/kagome/.code={\def\smag@pattern{SMkagome}},
+  pattern/yagasuri/.code={\def\smag@pattern{SMyagasuri}},
+  pattern/tatewaku/.code={\def\smag@pattern{SMtatewaku}},
+  pattern/mitsukuzushi/.code={\def\smag@pattern{SMmitsukuzushi}},
+  pattern/ajiro/.code={\def\smag@pattern{SMajiro}},
+  pattern/truchet/.code={\def\smag@pattern{SMtruchet}},
+  pattern/isocubes/.code={\def\smag@pattern{SMisocubes}},
+  pattern/sierpinski/.code={\def\smag@pattern{SMsierpinski}},
+  pattern/lattice/.code={\def\smag@pattern{SMlattice}},
+  pattern/moire/.code={\def\smag@pattern{SMmoire}},
+  pattern/envelopes/.code={\def\smag@pattern{SMenvelopes}},
+  pattern/girih/.code={\def\smag@pattern{SMgirih}},
+  pattern/packing/.code={\def\smag@pattern{SMpacking}},
+  pattern/spirals/.code={\def\smag@pattern{SMspirals}},
   series-position/.is choice,
   series-position/center/.code={\def\smag@seriesposition{center}},
   series-position/left/.code={\def\smag@seriesposition{left}},
@@ -539,6 +1461,81 @@
   author-font/.is choice,
   author-font/mincho/.code={\def\smag@authorfont{\SMAuthorMinchoFont}},
   author-font/gothic/.code={\def\smag@authorfont{\SMAuthorGothicFont}},
+}
+
+% --- Pattern tone, accent, and magnification -----------------------------
+%
+% The twelve classic patterns and the nine mathematical motifs are uncolored
+% pgf patterns, so their ink is supplied from outside by `pattern color'.
+% That single hook is what the three keys below drive; SMpatternInk is
+% recomputed immediately before each pattern is laid down.  The ten wagara
+% patterns are inherently coloured, so pgf ignores `pattern color' for them
+% and they keep the grey levels written into their own tiles; only the white
+% veil of the current tone reaches them.
+%
+%   pattern-tone   pale / light / normal / strong
+%                  `normal' reproduces the historical appearance exactly:
+%                  full-strength ink under a 13 per cent white veil.
+%   pattern-accent any colour name, or `none' for the achromatic default.
+%                  Ignored by the inherently coloured wagara patterns.
+%   pattern-scale  tile magnification, e.g. .8 or 1.4.  It applies to the
+%                  mathematical-motif patterns, whose tiles are declared in
+%                  terms of the magnification; the twelve classic and the
+%                  ten wagara patterns have fixed tiles and ignore it.
+\definecolor{SMpatternInk}{gray}{0}
+\def\smag@patterntonemix{100}
+\def\smag@patternveil{.13}
+\def\smag@patternaccent{}
+\def\smag@patternscale{1}
+
+\pgfkeys{
+  /surikumi,
+  pattern-tone/.is choice,
+  pattern-tone/pale/.code={%
+    \def\smag@patterntonemix{28}\def\smag@patternveil{.42}},
+  pattern-tone/light/.code={%
+    \def\smag@patterntonemix{55}\def\smag@patternveil{.26}},
+  pattern-tone/normal/.code={%
+    \def\smag@patterntonemix{100}\def\smag@patternveil{.13}},
+  pattern-tone/strong/.code={%
+    \def\smag@patterntonemix{100}\def\smag@patternveil{0}},
+  pattern-accent/.code={%
+    \def\smag@patternaccent{#1}%
+    \ifdefstring{\smag@patternaccent}{none}{\def\smag@patternaccent{}}{}%
+  },
+  pattern-scale/.store in=\smag@patternscale,
+}
+
+% Resolve the current tone and accent into the single ink the pattern uses.
+\newcommand{\smag@preparepatternink}{%
+  \ifdefempty{\smag@patternaccent}{%
+    \colorlet{SMpatternInk}{black!\smag@patterntonemix}%
+  }{%
+    \colorlet{SMpatternInk}{\smag@patternaccent!\smag@patterntonemix!white}%
+  }%
+}
+
+% Lay the pattern over the rectangle (#1,#2)--(#3,#4) of the surrounding
+% picture and cover it with the white veil belonging to the current tone.
+% Patterns declared with a tile magnification take the `SM scale' key;
+% the classic patterns are filled exactly as before.
+\newcommand{\smag@patternfillmeta}[5]{%
+  \path[pattern={#1},pattern color=SMpatternInk]
+    (#2,#3) rectangle (#4,#5);%
+}
+\newcommand{\smag@patternfill}[4]{%
+  \smag@preparepatternink
+  \pgfifpatternundefined{\smag@pattern}{%
+    \path[pattern=\smag@pattern,pattern color=SMpatternInk]
+      (#1,#2) rectangle (#3,#4);%
+  }{%
+    \edef\smag@patternspec{\smag@pattern[SM scale=\smag@patternscale]}%
+    \expandafter\smag@patternfillmeta\expandafter
+      {\smag@patternspec}{#1}{#2}{#3}{#4}%
+  }%
+  \ifdim\smag@patternveil pt>0pt
+    \fill[white,opacity=\smag@patternveil] (#1,#2) rectangle (#3,#4);%
+  \fi
 }
 
 \pgfkeys{
@@ -622,8 +1619,7 @@
     \begin{tikzpicture}
       \path[use as bounding box] (0,0) rectangle (\textwidth,31mm);
       \path[fill=SMband] (0,0) rectangle (\textwidth,31mm);
-      \path[pattern=\smag@pattern] (0,0) rectangle (\textwidth,31mm);
-      \fill[white,opacity=.13] (0,0) rectangle (\textwidth,31mm);
+      \smag@patternfill{0}{0}{\textwidth}{31mm}%
       \ifdefstring{\smag@seriesposition}{left}{%
         \node[
           anchor=north west,
@@ -675,6 +1671,34 @@
 % Public banner-only command, useful for pattern samples and custom article
 % openings that do not need the feature pill or introductory deck.
 \NewDocumentCommand{\MMTitleBanner}{}{\noindent\smag@banner}
+
+% A slim band of the currently selected pattern, used to separate the
+% sections of a long article.  The optional argument is the band height.
+% Tone, accent, and magnification are the ones set by \MathMagazineSetup.
+\NewDocumentCommand{\MMPatternRule}{O{3.2mm}}{%
+  \par\vspace{2.4mm}%
+  \noindent
+  \begin{tikzpicture}
+    \path[use as bounding box] (0,0) rectangle (\linewidth,#1);
+    \path[fill=SMpale] (0,0) rectangle (\linewidth,#1);
+    \smag@patternfill{0}{0}{\linewidth}{#1}%
+    \draw[draw=SMrule,line width=.4pt] (0,0)--(\linewidth,0);
+    \draw[draw=SMrule,line width=.4pt] (0,#1)--(\linewidth,#1);
+  \end{tikzpicture}%
+  \par\vspace{2.4mm}%
+}
+
+% Inline pattern swatch, for legends and pattern catalogues.  The mandatory
+% argument is the swatch width, the optional one its height.  A swatch this
+% small usually wants pattern-scale below one, so that a whole motif fits.
+\NewDocumentCommand{\MMPatternSwatch}{O{3.4mm} m}{%
+  \begin{tikzpicture}[baseline=.8mm]
+    \path[use as bounding box] (0,0) rectangle (#2,#1);
+    \path[fill=SMpale] (0,0) rectangle (#2,#1);
+    \smag@patternfill{0}{0}{#2}{#1}%
+    \draw[draw=SMrule,line width=.35pt] (0,0) rectangle (#2,#1);
+  \end{tikzpicture}%
+}
 
 \newcommand{\smag@titleblock}{%
   \begin{minipage}{\textwidth}
@@ -1357,15 +2381,24 @@
   }
 }
 
-\newcommand{\smag@confirmation@hatchlines}{%
-  \foreach \smag@hatchoffset in
-    {-1.40,-1.12,-.84,-.56,-.28,0,.28,.56,.84}{%
-      \draw[smag confirmation hatch]
-        (\smag@hatchoffset,-.42) -- ++(1.68,1.68);%
+% Every mark is .82em tall, so one 1.68em-long stroke always crosses the
+% whole height; only how many strokes are needed depends on the width.
+% The sweep is derived from the mark width and is never allowed to fall
+% below the historical range, which keeps the .82em square and the 1.25em
+% arrow bit-for-bit identical while wider marks are hatched completely.
+\newcommand{\smag@confirmation@hatchlines}[1]{%
+  \pgfmathtruncatemacro{\smag@hatchlast}{max(3,ceil((#1-.42)/.28))}%
+  \foreach \smag@hatchindex in {-5,...,\smag@hatchlast}{%
+    \pgfmathsetmacro{\smag@hatchoffset}{.28*\smag@hatchindex}%
+    \draw[smag confirmation hatch]
+      (\smag@hatchoffset,-.42) -- ++(1.68,1.68);%
   }%
 }
 
-\newcommand{\smag@confirmation@symbol}[3]{%
+% #1 fill mode, #2 mark width in em, #3 body path, #4 extra outline path.
+% The extra outline is stroked but never filled or hatched; it exists so
+% that concentric marks share the outline weight of every other symbol.
+\newcommand{\smag@confirmation@symbol@core}[4]{%
   \tikz[baseline=.17em,x=1em,y=1em]{%
     \path[use as bounding box] (0,0) rectangle (#2,.82);%
     \ifstrequal{#1}{filled}{%
@@ -1374,11 +2407,16 @@
       \begin{scope}
         \clip #3;%
         \path[fill=white] #3;%
-        \smag@confirmation@hatchlines
+        \smag@confirmation@hatchlines{#2}
       \end{scope}
     }%
     \path[smag confirmation outline] #3;%
+    \ifstrempty{#4}{}{\path[smag confirmation outline] #4;}%
   }%
+}
+
+\newcommand{\smag@confirmation@symbol}[3]{%
+  \smag@confirmation@symbol@core{#1}{#2}{#3}{}%
 }
 
 \NewDocumentCommand{\MMConfirmationStripedMark}{}{%
@@ -1476,6 +2514,243 @@
 % Backward-compatible generic short name: a general note for every reader.
 \NewDocumentCommand{\MMConfirmationNote}{O{} +m}{%
   \MMConfirmationGeneralNote[#1]{#2}%
+}
+
+% --- Extended mark vocabulary -------------------------------------------
+%
+% The square means "comment" and the arrow means "note"; both meanings are
+% taken, so a new meaning always gets a new outline.  The hatched/solid
+% distinction is the grammar of the system rather than a property of one
+% shape, so every family below exists in both forms: hatched for all
+% readers, solid for motivated readers.
+%
+% All shapes are .82em tall and are drawn through
+% \smag@confirmation@symbol(@core), so outline weight, hatch angle, hatch
+% spacing, hatch phase and baseline are identical across the whole set.
+% Widths differ because the outlines differ; the hatch sweep follows the
+% width, so a wide mark is hatched completely without shifting its phase.
+
+% Upward triangle: the point that carries the argument.
+\def\smag@confirmation@pointpath{%
+  (0,0) -- (.90,0) -- (.45,.82) -- cycle%
+}
+% Lozenge, deliberately wider than tall so that it can never be read as a
+% rotated comment square: a pitfall or a frequent mistake.
+\def\smag@confirmation@cautionpath{%
+  (0,.41) -- (.50,0) -- (1.00,.41) -- (.50,.82) -- cycle%
+}
+% Elongated hexagon, a signpost: how to attack the problem.  It is kept
+% markedly wider than tall so that its solid form cannot be confused with
+% the solid circle at body size.
+\def\smag@confirmation@hintpath{%
+  (0,.41) -- (.30,0) -- (.90,0) -- (1.20,.41) -- (.90,.82) -- (.30,.82)
+  -- cycle%
+}
+% Circle: a definition, a theorem, or a formula to memorise.
+\def\smag@confirmation@formulapath{%
+  (.41,.41) circle[radius=.41]%
+}
+% Concentric circles, the Japanese "double circle" of a verified result:
+% check the answer.  The inner disc carries the fill or the hatching and
+% the outer circle is stroked with the shared outline weight.
+\def\smag@confirmation@checkpath{%
+  (.41,.41) circle[radius=.28]%
+}
+\def\smag@confirmation@checkringpath{%
+  (.41,.41) circle[radius=.41]%
+}
+% Pentagon: material beyond the standard syllabus.
+\def\smag@confirmation@extensionpath{%
+  (.430,.82) -- (0,.507) -- (.164,0) -- (.696,0) -- (.860,.507) -- cycle%
+}
+% Circular sector: look at the figure.  A trapezoid was rejected here
+% because at body size it is too close to the comment square, and the
+% square carries a reserved meaning.
+\def\smag@confirmation@figurepath{%
+  (0,0) -- (.82,0) arc[start angle=0,end angle=90,radius=.82] -- cycle%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedPointMark}{}{%
+  \smag@confirmation@symbol{hatched}{.90}{\smag@confirmation@pointpath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledPointMark}{}{%
+  \smag@confirmation@symbol{filled}{.90}{\smag@confirmation@pointpath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedCautionMark}{}{%
+  \smag@confirmation@symbol{hatched}{1.00}{\smag@confirmation@cautionpath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledCautionMark}{}{%
+  \smag@confirmation@symbol{filled}{1.00}{\smag@confirmation@cautionpath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedHintMark}{}{%
+  \smag@confirmation@symbol{hatched}{1.20}{\smag@confirmation@hintpath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledHintMark}{}{%
+  \smag@confirmation@symbol{filled}{1.20}{\smag@confirmation@hintpath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedFormulaMark}{}{%
+  \smag@confirmation@symbol{hatched}{.82}{\smag@confirmation@formulapath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledFormulaMark}{}{%
+  \smag@confirmation@symbol{filled}{.82}{\smag@confirmation@formulapath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedCheckMark}{}{%
+  \smag@confirmation@symbol@core{hatched}{.82}%
+    {\smag@confirmation@checkpath}{\smag@confirmation@checkringpath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledCheckMark}{}{%
+  \smag@confirmation@symbol@core{filled}{.82}%
+    {\smag@confirmation@checkpath}{\smag@confirmation@checkringpath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedExtensionMark}{}{%
+  \smag@confirmation@symbol{hatched}{.86}{\smag@confirmation@extensionpath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledExtensionMark}{}{%
+  \smag@confirmation@symbol{filled}{.86}{\smag@confirmation@extensionpath}%
+}
+
+\NewDocumentCommand{\MMConfirmationStripedFigureMark}{}{%
+  \smag@confirmation@symbol{hatched}{.82}{\smag@confirmation@figurepath}%
+}
+\NewDocumentCommand{\MMConfirmationFilledFigureMark}{}{%
+  \smag@confirmation@symbol{filled}{.82}{\smag@confirmation@figurepath}%
+}
+
+% One declaration builds the whole public interface of a family, so that
+% every family offers exactly the same commands and environments as the
+% square and the arrow.  #1 is the family name as it appears in command
+% names, #2 the same name in the lowercase form used by environments.
+% The generated environments accept several paragraphs and display
+% mathematics, and reuse the shared comment opener and closer.
+\newcommand{\smag@confirmation@declarefamily}[2]{%
+  \expandafter\NewDocumentCommand
+    \csname mmconfirmationgeneral#2\endcsname{O{}}{%
+      \smag@confirmationcomment@begin
+        {\csname MMConfirmationStriped#1Mark\endcsname}{##1}%
+    }%
+  \csdef{endmmconfirmationgeneral#2}{\smag@confirmationcomment@end}%
+  \expandafter\NewDocumentCommand
+    \csname mmconfirmationadvanced#2\endcsname{O{}}{%
+      \smag@confirmationcomment@begin
+        {\csname MMConfirmationFilled#1Mark\endcsname}{##1}%
+    }%
+  \csdef{endmmconfirmationadvanced#2}{\smag@confirmationcomment@end}%
+  \expandafter\NewDocumentCommand
+    \csname MMConfirmationGeneral#1\endcsname{O{} +m}{%
+      \begin{mmconfirmationgeneral#2}[##1]##2\end{mmconfirmationgeneral#2}%
+    }%
+  \expandafter\NewDocumentCommand
+    \csname MMConfirmationAdvanced#1\endcsname{O{} +m}{%
+      \begin{mmconfirmationadvanced#2}[##1]##2\end{mmconfirmationadvanced#2}%
+    }%
+}
+
+\smag@confirmation@declarefamily{Point}{point}
+\smag@confirmation@declarefamily{Caution}{caution}
+\smag@confirmation@declarefamily{Hint}{hint}
+\smag@confirmation@declarefamily{Formula}{formula}
+\smag@confirmation@declarefamily{Check}{check}
+\smag@confirmation@declarefamily{Extension}{extension}
+\smag@confirmation@declarefamily{Figure}{figure}
+
+% --- Label, number and rating variants ----------------------------------
+
+% Outlined counterpart of \MMBlackLabel, for spreads where several labels
+% would otherwise collapse into a row of solid black blocks.  Same face,
+% same size, same baseline; only the weight on the page differs.
+\NewDocumentCommand{\MMOutlineLabel}{m}{%
+  \tikz[baseline=-.5ex]
+    \node[draw=SMink,line width=.5pt,fill=white,text=SMink,
+      rounded corners=1.2pt,
+      inner xsep=2.2pt,inner ysep=.7pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
+}
+
+% Tinted label: quieter than the black label, heavier than the outlined
+% one.  Useful for the third level of a dense opening page.
+\NewDocumentCommand{\MMTintLabel}{m}{%
+  \tikz[baseline=-.5ex]
+    \node[fill=SMpale,text=SMink,rounded corners=1.2pt,
+      inner xsep=2.2pt,inner ysep=.7pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{7.5}{8.5}\selectfont] {#1};%
+}
+
+% White circular number: the counterpart of \MMMockNumber, for a second
+% series of numbers on the same page.
+\NewDocumentCommand{\MMOutlineNumber}{m}{%
+  \tikz[baseline=-.62ex]
+    \node[circle,draw=SMink,line width=.5pt,fill=white,text=SMink,
+      minimum size=2.05em,inner sep=0pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
+}
+
+% Rounded rectangular number.  It always contains a numeral and is drawn
+% at label size, so it belongs to the numbering system, not to the .82em
+% inline mark system in which a square means "comment".
+\NewDocumentCommand{\MMSquareNumber}{m}{%
+  \tikz[baseline=-.62ex]
+    \node[draw=SMink,line width=.5pt,fill=white,text=SMink,
+      rounded corners=2.4pt,minimum size=1.9em,inner sep=0pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
+}
+
+\NewDocumentCommand{\MMFilledSquareNumber}{m}{%
+  \tikz[baseline=-.62ex]
+    \node[fill=SMink,text=white,
+      rounded corners=2.4pt,minimum size=1.9em,inner sep=0pt,
+      font=\sffamily\gtfamily\bfseries\fontsize{9.5}{10}\selectfont] {#1};%
+}
+
+% Explicit difficulty scale, \MMDifficultyDots{3}{5} being "3 out of 5".
+% \MMDifficulty and \MMTimeMarks are unchanged and still express the
+% target time; the dots express difficulty alone, which the time marks
+% cannot do.  The dots share the mark baseline, so a rating aligns with
+% the inline marks in the same line.
+\NewDocumentCommand{\MMDifficultyDots}{m m}{%
+  \tikz[baseline=.17em,x=1em,y=1em]{%
+    \path[use as bounding box] (0,0) rectangle ({.30*#2-.07},.82);%
+    \foreach \smag@dotindex in {1,...,#2}{%
+      \draw[draw=SMink,line width=.35pt,fill=white]
+        ({.115+.30*(\smag@dotindex-1)},.41) circle[radius=.115];%
+    }%
+    \ifnum#1>0\relax
+      \foreach \smag@dotindex in {1,...,#1}{%
+        \draw[draw=SMink,line width=.35pt,fill=SMink]
+          ({.115+.30*(\smag@dotindex-1)},.41) circle[radius=.115];%
+      }%
+    \fi
+  }%
+}
+
+% End-of-answer mark.  Neither a hollow nor a solid square, so it cannot
+% be mistaken for a comment; the double stroke is the traditional
+% Japanese proof terminator.
+\newcommand{\smag@qedmark}{%
+  \tikz[baseline=.17em,x=1em,y=1em]{%
+    \path[use as bounding box] (0,0) rectangle (.52,.82);%
+    \draw[draw=SMink,line width=.42pt,line cap=butt] (.04,.10)--(.26,.72);
+    \draw[draw=SMink,line width=.42pt,line cap=butt] (.26,.10)--(.48,.72);
+  }%
+}
+
+% Sets the mark flush right on the last line of the answer, moving it to
+% a short line of its own only when the last line is already full.
+\NewDocumentCommand{\MMQED}{}{%
+  \unskip\nobreak\hfil\penalty50\hskip.6em\null\nobreak\hfil
+  \smag@qedmark
+  {\parfillskip=0pt\relax\finalhyphendemerits=0\relax\par}%
+}
+
+% Inline pointer to another page, another problem, or a source, for use
+% inside running text.  The block-level \MMSource is unchanged and
+% remains the form for a problem's origin.
+\NewDocumentCommand{\MMSeeAlso}{m}{%
+  {\normalfont\rmfamily\mcfamily\mdseries（→\,#1）}%
 }
 
 \NewDocumentCommand{\MMConfirmationProofLabel}{O{証明}}{%
@@ -1751,11 +3026,395 @@
   \vspace{1mm}{\normalfont\mcfamily #2}\par\vspace{1.5mm}
 }
 
+% =======================================================================
+% Readability layer
+% =======================================================================
+% A 42-character column of 8pt type is unforgiving: a single orphan, one
+% unbreakable inline formula, or an align* that cannot cross a column
+% boundary is immediately visible.  The parts below address that without
+% loosening the page density.
+
+% --- Line- and page-breaking ------------------------------------------
+% \raggedbottom is already active, so a column is free to end early.
+% Forbidding orphans and widows therefore costs nothing but one line.
+\newcommand{\smag@applybreakpenalties}{%
+  \clubpenalty=10000
+  \widowpenalty=10000
+  \displaywidowpenalty=10000
+  % Never carry the tail of a hyphenated word into the next column.
+  \brokenpenalty=9999
+  \doublehyphendemerits=10000
+  \finalhyphendemerits=15000
+  % The narrow measure needs slightly more freedom than the LaTeX
+  % defaults, plus a last-resort reserve instead of an overfull line.
+  \tolerance=2500
+  \setlength{\emergencystretch}{1.5em}%
+  % A long inline formula must be allowed to break; otherwise one
+  % relation can push a whole line past the column edge.
+  \relpenalty=250
+  \binoppenalty=500
+  % Let a multi-line display cross a column boundary rather than leave a
+  % hole at the foot of the column, but only when nothing better exists.
+  \allowdisplaybreaks[1]%
+}
+
+% --- Japanese/Latin inter-character spacing ---------------------------
+% At 8pt the default gap around Latin words and inline mathematics is too
+% small for a formula to stand out from the surrounding Japanese.  A fixed
+% natural gap with restrained elasticity keeps the colour of the text even
+% while making every formula legible as a separate object.
+\newcommand{\smag@kanjiskipvalue}{0pt plus .25\zw minus .02\zw}
+\newcommand{\smag@xkanjiskipvalue}{.22\zw plus .1\zw minus .05\zw}
+\newcommand{\smag@applyinterspacing}{%
+  \ltjsetparameter{%
+    kanjiskip={\smag@kanjiskipvalue},
+    xkanjiskip={\smag@xkanjiskipvalue}%
+  }%
+}
+% jlreq restores its own values on every font-size change, so the class
+% hooks have to learn the new ones as well.
+\newcommand{\smag@adoptinterspacing}{%
+  \@ifundefined{jlreqkanjiskip}{}{%
+    \renewcommand*{\jlreqkanjiskip}{\smag@kanjiskipvalue}%
+  }%
+  \@ifundefined{jlreqxkanjiskip}{}{%
+    \renewcommand*{\jlreqxkanjiskip}{\smag@xkanjiskipvalue}%
+  }%
+}
+
+\ifsmag@interspacing
+  \smag@adoptinterspacing
+\fi
+
+% --- Column rule ------------------------------------------------------
+% Two things have to be patched into the double-column output routine.
+% The kernel draws the rule with \normalcolor, so the colour has to be put
+% back; and it draws it with a running height, which makes the rule as tall
+% as the text block even on a page whose columns stop half way down --- on
+% the last page of an article that leaves a hairline dangling in white
+% space.  Unboxing a copy of each column and measuring it again gives the
+% height its material really reaches, because the stretchable glue that
+% \raggedbottom leaves at the foot contributes nothing to a natural height.
+% Under the kernel's \flushbottom, which empties \@textbottom, the columns
+% really are stretched to fill and the rule keeps the full height.  A failed
+% patch is not an error: the rule then falls back to the kernel's appearance.
+% Declared outside the switch below so that TeX can still match \else and
+% \fi while it skips the block of a document that did not ask for a rule.
+\newif\ifsmag@rulemeasured
+\ifsmag@columnrule
+  \setlength{\columnseprule}{.25pt}%
+  \newbox\smag@rulebox
+  \newdimen\smag@rulefull
+  \newdimen\smag@ruleink
+  \newcommand{\smag@measurecolumn}[1]{%
+    \ifvbox#1%
+      \setbox\smag@rulebox\vbox{\unvcopy#1}%
+      \ifdim\dimexpr\ht\smag@rulebox+\dp\smag@rulebox\relax>\smag@ruleink
+        \smag@ruleink\dimexpr\ht\smag@rulebox+\dp\smag@rulebox\relax
+      \fi
+      \setbox\smag@rulebox\box\voidb@x
+    \fi
+  }
+  \newcommand{\smag@measurecolumnrule}{%
+    \smag@rulefull\ht\@leftcolumn
+    \ifx\@textbottom\relax
+      \smag@ruleink\smag@rulefull
+    \else
+      \smag@ruleink\z@
+      \smag@measurecolumn\@leftcolumn
+      \smag@measurecolumn\@outputbox
+      \ifdim\smag@ruleink>\smag@rulefull
+        \smag@ruleink\smag@rulefull
+      \fi
+    \fi
+  }
+  \newcommand{\smag@columnrule}{%
+    \ifsmag@rulemeasured
+      \raise\dimexpr\smag@rulefull-\smag@ruleink\relax
+      \hbox{\color{SMrule}%
+        \vrule\@width\columnseprule\@height\smag@ruleink\@depth\z@}%
+    \else
+      \color{SMrule}\vrule\@width\columnseprule
+    \fi
+  }
+  \patchcmd{\@outputdblcol}
+    {\hb@xt@\columnwidth{\box\@leftcolumn \hss}}
+    {\smag@measurecolumnrule\hb@xt@\columnwidth{\box\@leftcolumn \hss}}
+    {\smag@rulemeasuredtrue}%
+    {\PackageWarning{surikumi}%
+      {Cannot measure the columns; the rule keeps the full height}}%
+  \patchcmd{\@outputdblcol}
+    {\normalcolor\vrule \@width\columnseprule}
+    {\smag@columnrule}
+    {}%
+    {\PackageWarning{surikumi}%
+      {Cannot draw the column rule; using the kernel's own}}%
+  % cuted builds the two columns above a full-width block itself.  There
+  % the rule has to reach the block, so only its colour is corrected.
+  \ifsmag@strip
+    \patchcmd{\@addviper}
+      {\normalcolor\vrule \@width\columnseprule}
+      {\color{SMrule}\vrule \@width\columnseprule}
+      {}{}%
+  \fi
+\fi
+
+% --- Running head -----------------------------------------------------
+% The head follows the article metadata by itself, because it prints the
+% macros that \MathMagazineSetup stores.  \MMRunningHead overrides them,
+% for instance in an article whose title is too long for the head.
+\def\smag@runningheadverso{\smag@series}
+\def\smag@runningheadrecto{\smag@title}
+
+\NewDocumentCommand{\MMRunningHead}{o m}{%
+  \IfNoValueTF{#1}%
+    {\gdef\smag@runningheadverso{#2}}%
+    {\gdef\smag@runningheadverso{#1}}%
+  \gdef\smag@runningheadrecto{#2}%
+}
+
+% No enclosing group: fancyhdr puts the head into a \parbox and ends the
+% paragraph after this text, so the 7pt leading has to still be current at
+% that moment.  Otherwise the head box claims a full body line.
+\newcommand{\smag@runningheadtext}[1]{%
+  \normalfont\sffamily\gtfamily
+  \fontsize{7}{8.4}\selectfont
+  \color{SMrule}#1%
+}
+
+% Opening pages keep \thispagestyle{sugakumagazine} and therefore stay
+% free of a head, which is where a magazine wants the banner to breathe.
+\fancypagestyle{sugakumagazinerunning}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{.3pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+  \renewcommand{\headrule}{%
+    {\color{SMrule}\hrule\@height\headrulewidth\@width\headwidth}%
+    \vskip-\headrulewidth}%
+  \if@twoside
+    \fancyhead[LE]{\smag@runningheadtext{\smag@runningheadverso}}%
+    \fancyhead[RO]{\smag@runningheadtext{\smag@runningheadrecto}}%
+  \else
+    \fancyhead[R]{\smag@runningheadtext{\smag@runningheadrecto}}%
+  \fi
+  \ifsmag@footer
+    \if@twoside
+      \fancyfoot[LE,RO]{\sffamily\bfseries\small\thepage}%
+    \else
+      \fancyfoot[R]{\sffamily\bfseries\small\thepage}%
+    \fi
+  \fi
+}
+
+\ifsmag@runninghead
+  \AtBeginDocument{\pagestyle{sugakumagazinerunning}}
+\fi
+
+% --- Emphasis ---------------------------------------------------------
+% Kenten are the Japanese way of emphasising running text.  They keep the
+% body face, the body size and the line pattern intact, which is why they
+% are preferred here over bold or a colour.  Squares are reserved for
+% confirmation comments, so the mark is a dot.
+% The mark itself is renewable, for instance to the sesame dot ﹅.
+\newcommand{\MMKentenMark}{\textmd{\textbullet}}
+
+% size and intergap are tuned for 8pt on a 10.8pt baseline: the dot ends
+% exactly at the top of the kanji, so it reads as an emphasis mark rather
+% than as ruby, and roughly 1.2pt of the interline space is left free
+% above it.  A marked line therefore keeps the vertical rhythm; only an
+% unusually deep line above it makes TeX open the gap, which is the safe
+% direction.
+\NewDocumentCommand{\MMKenten}{m}{%
+  \ifsmag@ruby
+    \ltjkenten[kenten=\MMKentenMark,size=.42,intergap=-.05]{#1}%
+  \else
+    {\sffamily\gtfamily #1}%
+  \fi
+}
+
+% First occurrence of a technical term.  Gothic alone is enough contrast
+% against Mincho at 8pt, so no extra weight is added.
+\NewDocumentCommand{\MMTerm}{m}{{\sffamily\gtfamily #1}}
+
+% Ruby.  Use a vertical bar in both arguments for per-character ruby:
+% \MMRuby{漸|化|式}{ぜん|か|しき}
+\NewDocumentCommand{\MMRuby}{m m}{%
+  \ifsmag@ruby
+    \ltjruby{#1}{#2}%
+  \else
+    #1%
+  \fi
+}
+
+% --- Section lead -----------------------------------------------------
+% A short orientation paragraph under a heading.  It stays in the body
+% face and size; only the measure and a hairline set it apart, so it does
+% not compete with the heading above it.
+\NewDocumentCommand{\MMLead}{+m}{%
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    frame hidden,
+    colback=white,
+    sharp corners,
+    boxsep=0pt,
+    left=2.6mm,
+    right=1.2mm,
+    top=.5mm,
+    bottom=.5mm,
+    borderline west={.4pt}{0pt}{SMrule},
+    before skip=.5\baselineskip,
+    after skip=.6\baselineskip
+  ]%
+  \noindent #1%
+  \end{tcolorbox}%
+}
+
+% --- Formula presentation ---------------------------------------------
+% The style guide forbids boxing an answer or a final result.  This box
+% presents a formula the reader is meant to keep, which is a different
+% job, so it deliberately avoids a closed rectangle: one heavy rule on the
+% left and a pale tint, never a frame drawn around a result.
+\newtcolorbox{mmformulabox}[1][公式]{%
+  enhanced,
+  breakable,
+  frame hidden,
+  colback=SMpale!60!white,
+  sharp corners,
+  boxsep=0pt,
+  left=2.8mm,
+  right=2.2mm,
+  top=1.5mm,
+  bottom=1.6mm,
+  borderline west={.9pt}{0pt}{SMink},
+  before skip=.7\baselineskip,
+  after skip=.7\baselineskip,
+  before upper={%
+    \ifstrempty{#1}{\noindent}{%
+      \noindent\MMBlackLabel{#1}\hspace{.65em}}\ignorespaces}%
+}
+
+\NewDocumentCommand{\MMFormulaBox}{O{公式} +m}{%
+  \begin{mmformulabox}[#1]#2\end{mmformulabox}%
+}
+
+% --- Summary ----------------------------------------------------------
+% Rules above and below only.  Together with the label this reads as a
+% closing panel and cannot be mistaken for a boxed answer.
+\newtcolorbox{mmsummary}[1][まとめ]{%
+  enhanced,
+  breakable,
+  frame hidden,
+  colback=white,
+  sharp corners,
+  boxsep=0pt,
+  left=0pt,
+  right=0pt,
+  top=1.4mm,
+  bottom=1.5mm,
+  borderline north={.7pt}{0pt}{SMink},
+  borderline south={.7pt}{0pt}{SMink},
+  before skip=.85\baselineskip,
+  after skip=.85\baselineskip,
+  before upper={%
+    \ifstrempty{#1}{\noindent}{%
+      \noindent\MMBlackLabel{#1}\hspace{.65em}}\ignorespaces}%
+}
+
+\NewDocumentCommand{\MMSummary}{O{まとめ} +m}{%
+  \begin{mmsummary}[#1]#2\end{mmsummary}%
+}
+
+% --- Figure and table captions ----------------------------------------
+\newcounter{mmfigure}
+\newcounter{mmtable}
+\newcommand{\MMFigureName}{図}
+\newcommand{\MMTableName}{表}
+% \ref to a caption prints the kind as well, as 図3 rather than a bare 3.
+\def\p@mmfigure{\MMFigureName}
+\def\p@mmtable{\MMTableName}
+
+\newcommand{\smag@caption}[2]{%
+  \par\addvspace{.32\baselineskip}%
+  \begingroup
+    \normalfont\rmfamily\mcfamily
+    \fontsize{7}{9}\selectfont
+    \centering
+    \ifstrempty{#1}{}{{\sffamily\gtfamily\bfseries #1}\hspace{.6em}}%
+    #2\par
+  \endgroup
+  \addvspace{.42\baselineskip}%
+}
+
+% \MMCaption{...} numbers a figure, \MMCaption[table]{...} a table, and
+% the starred form prints an unnumbered caption.
+\NewDocumentCommand{\MMCaption}{s O{figure} +m}{%
+  \IfBooleanTF{#1}{%
+    \smag@caption{}{#3}%
+  }{%
+    \ifstrequal{#2}{table}{%
+      \refstepcounter{mmtable}%
+      \smag@caption{\MMTableName\themmtable}{#3}%
+    }{%
+      \refstepcounter{mmfigure}%
+      \smag@caption{\MMFigureName\themmfigure}{#3}%
+    }%
+  }%
+}
+
+% --- Temporarily full-width material ----------------------------------
+% Style guide section 8: rather than squeezing an over-long display into
+% one column, break it up or let it use the full measure for a moment.
+% The leading \par matters: `strip' opens a vbox, so the block has to start
+% in vertical mode even when the source has no blank line before it.  The
+% gap above and below the strip is \stripsep, which is set from the body
+% leading at \begin{document}; the single-column fallback uses the ordinary
+% \addvspace instead.
+\newif\ifsmag@wideblock@strip
+\NewDocumentEnvironment{mmwideblock}{}{%
+  \smag@wideblock@stripfalse
+  \ifsmag@strip\if@twocolumn\smag@wideblock@striptrue\fi\fi
+  \par
+  \ifsmag@wideblock@strip
+    \begin{strip}%
+  \else
+    \addvspace{.6\baselineskip}%
+  \fi
+  \ignorespaces
+}{%
+  \par
+  \ifsmag@wideblock@strip
+    \end{strip}%
+  \else
+    \addvspace{.6\baselineskip}%
+  \fi
+}
+
+\NewDocumentCommand{\MMWideBlock}{+m}{%
+  \begin{mmwideblock}#1\end{mmwideblock}%
+}
+
 \AtBeginDocument{%
   \fontsize{\smag@bodyfontsize}{\smag@bodyleading}\selectfont
   \setlength{\parindent}{1em}%
   \setlength{\parskip}{0pt}%
   \smag@applyverticalrhythm
+  % cuted's own default is a fixed 15pt, which owes nothing to the body
+  % leading.  Tying the gap around a full-width block to the rhythm keeps
+  % it looking the same in every density.
+  \ifsmag@strip
+    \setlength{\stripsep}{1.2\baselineskip plus .4\baselineskip
+                          minus .2\baselineskip}%
+  \fi
+}
+
+% Declared last on purpose: \emergencystretch, the airy rhythm and the
+% inter-character spacing are all relative to the body font, which the
+% hook above selects.
+\AtBeginDocument{%
+  \ifsmag@penalties\smag@applybreakpenalties\fi
+  \smag@applyairyrhythm
+  \ifsmag@interspacing\smag@applyinterspacing\fi
 }
 \makeatother
 
