@@ -1,0 +1,8 @@
+\ProvidesFile{fmxsugakufourier.fd}[2026/07/24 Sugaku Fourier math extension]
+
+\DeclareFontFamily{FMX}{sugakufourier}{}
+\DeclareFontShape{FMX}{sugakufourier}{m}{n}{%
+  <-> s * [.92] sugaku-fourier-mex
+}{}
+
+\endinput

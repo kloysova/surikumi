@@ -1,0 +1,32 @@
+\documentclass[dvipdfmx]{jsarticle}
+
+\usepackage{sugaku-fouriernc}
+\usepackage{amsmath}
+
+\pagestyle{empty}
+
+\newcommand{\CompactSugakuSum}[2]{%
+  \mathop{\textstyle\sum}\limits_{#1}^{#2}%
+}
+
+\begin{document}
+
+\begin{center}
+  \textbf{Sugaku Fourier／p\LaTeX}
+\end{center}
+
+\[
+  \CompactSugakuSum{m=1}{n}
+  \left\{
+    \CompactSugakuSum{k=1}{m}(12k-6)
+  \right\}
+\]
+
+\[
+  \sum_{m=1}^{n}
+  \left\{
+    \sum_{k=1}^{m}(12k-6)
+  \right\}
+\]
+
+\end{document}

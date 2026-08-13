@@ -1,0 +1,65 @@
+\documentclass[lualatex,paper=a5,fontsize=10pt]{jlreq}
+
+\usepackage{sugaku-fouriernc}
+\usepackage{amsmath}
+
+\pagestyle{empty}
+
+\DeclareSymbolFont{stocklargesymbols}{FMX}{futm}{m}{n}
+\DeclareMathSymbol{\StockSum}{\mathop}{stocklargesymbols}{"50}
+
+\newcommand{\CompactStockSum}[2]{%
+  \mathop{\textstyle\StockSum}\limits_{#1}^{#2}%
+}
+\newcommand{\CompactSugakuSum}[2]{%
+  \mathop{\textstyle\sum}\limits_{#1}^{#2}%
+}
+
+\begin{document}
+
+\begin{center}
+  {\sffamily\bfseries Sugaku Fourier v1.0}\\
+  {\small FourierNC 基準字形との比較}
+\end{center}
+
+\noindent\textbf{小型字形}
+
+\[
+  \begin{array}{c@{\qquad}c}
+    \text{\rmfamily FourierNC} &
+    \text{\rmfamily Sugaku Fourier} \\[1.2ex]
+    \CompactStockSum{m=1}{n}
+      \left\{\CompactStockSum{k=1}{m}(12k-6)\right\}
+    &
+    \CompactSugakuSum{m=1}{n}
+      \left\{\CompactSugakuSum{k=1}{m}(12k-6)\right\}
+  \end{array}
+\]
+
+\noindent\textbf{大型字形}
+
+\[
+  \begin{array}{c@{\qquad}c}
+    \text{\rmfamily FourierNC} &
+    \text{\rmfamily Sugaku Fourier} \\[1.2ex]
+    \displaystyle
+    \StockSum_{m=1}^{n}
+      \left\{\StockSum_{k=1}^{m}(12k-6)\right\}
+    &
+    \displaystyle
+    \sum_{m=1}^{n}
+      \left\{\sum_{k=1}^{m}(12k-6)\right\}
+  \end{array}
+\]
+
+\noindent\textbf{問題本文を想定した配置}
+
+\[
+  \text{\rmfamily (1)}\qquad
+  \CompactSugakuSum{m=1}{n}
+  \left\{
+    \CompactSugakuSum{k=1}{m}(12k-6)
+  \right\}
+\]
+
+\end{document}

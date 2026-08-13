@@ -1,0 +1,21 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sugaku-fouriernc}[2026/07/24 v1.0 Sugaku FourierNC math font]
+
+\RequirePackage{iftex}
+\RequirePackage{fouriernc}
+
+\ifLuaTeX
+  \pdfextension mapfile {+sugaku-fourier.map}
+\else
+  \ifPDFTeX
+    \pdfmapfile{+sugaku-fourier.map}
+  \else
+    \ifpTeX
+      \AtBeginDvi{\special{pdf:mapfile sugaku-fourier.map}}
+    \fi
+  \fi
+\fi
+
+\SetSymbolFont{largesymbols}{normal}{FMX}{sugakufourier}{m}{n}
+
+\endinput

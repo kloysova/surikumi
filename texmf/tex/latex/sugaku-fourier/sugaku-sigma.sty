@@ -1,0 +1,44 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sugaku-sigma}[2026/08/12 v1.0 Sugaku Fourier summation glyph only]
+
+% Exposes the summation glyphs of SugakuFourier-Math-Extension without
+% touching any other math glyph.
+%
+% This is deliberately narrower than sugaku-fouriernc.sty.  That package
+% loads fouriernc and repoints the whole largesymbols family, so integrals,
+% products, radicals and extensible delimiters all become Fourier shapes as
+% well.  Here only \SugakuSumText and \SugakuSumDisplay come from the custom
+% face; the document keeps whatever math font it already selected for
+% everything else.
+
+\RequirePackage{iftex}
+
+\ifLuaTeX
+  \pdfextension mapfile {+sugaku-fourier.map}
+\else
+  \ifPDFTeX
+    \pdfmapfile{+sugaku-fourier.map}
+  \else
+    \ifpTeX
+      \AtBeginDvi{\special{pdf:mapfile sugaku-fourier.map}}
+    \fi
+  \fi
+\fi
+
+% fourier.sty normally declares the FMX math-extension encoding.  This
+% package does not load fourier, so declare it here.  Repeating the
+% declaration is harmless if fourier is loaded as well.  The substitution
+% target is our own family: without fourier there is no futm to fall back on.
+\DeclareFontEncoding{FMX}{}{}
+\DeclareFontSubstitution{FMX}{sugakufourier}{m}{n}
+
+\DeclareSymbolFont{sugakusigma}{FMX}{sugakufourier}{m}{n}
+
+% In the Fourier math extension encoding, character 80 is summationtext and
+% character 88 is summationdisplay.  surikumi always sets summations in text
+% style, so 80 is the glyph that actually prints there; 88 is provided for
+% documents that want the large form explicitly.
+\DeclareMathSymbol{\SugakuSumText}{\mathop}{sugakusigma}{"50}
+\DeclareMathSymbol{\SugakuSumDisplay}{\mathop}{sugakusigma}{"58}
+
+\endinput

@@ -159,6 +159,57 @@ make kaisetsu
 参照する．数式・記号の推奨表記は
 [`docs/notation-style-guide.md`](docs/notation-style-guide.md) にまとめている．
 
+## 総目録
+
+書体，記号，見出しの記法，紙面部品を一箇所に集めた索引が
+[`docs/catalog.md`](docs/catalog.md) である．どの部品をどの記事で使うか
+迷ったときは，まずここを引く．
+
+紙の見本は次で組む．PDF は `build/public/catalog/` に生成される．
+
+```console
+make catalog
+```
+
+| 見本 | 内容 |
+|---|---|
+| `surikumi-catalog.pdf` | 書体，Σ，色，記号，見出し，講義・演習・確認の部品，種類を選ばない部品，問題集の追加部品 |
+| `pattern-catalog.pdf` | 背景パターン31種と濃度・色味・寸法の効き方 |
+| `kaisetsu-catalog.pdf` | 解説記事の版面で組んだ扉，見出しの4型，注，年表，囲み，参考文献，署名 |
+
+いずれも各項目に命令名を添えてある．
+
+## 短縮名
+
+すべての長い命令に短い別名がある．長い名前が正式名で，短い名前は別名である．
+どちらで書いても同じものが組まれるので，既存の原稿は書き換えなくてよい．
+
+```latex
+\MMSetup{...}          % = \MathMagazineSetup
+\MMTitle               % = \MakeMathMagazineTitle
+\MMSec{基本的な数列}    % = \MMConfirmationSection
+\MMCom{...}            % = \MMConfirmationGeneralComment
+\MMComA{...}           % = \MMConfirmationAdvancedComment（意欲的な読者向け）
+\MMAnn{...}            % = \MMConfirmationGeneralNote
+\MKSetup{...}          % = \MathKaisetsuSetup
+```
+
+`Com` はコメント（正方形），`Ann` は注釈（矢印），接尾の `A` は
+意欲的な読者向けを表す．全対応表は
+[`docs/catalog.md`](docs/catalog.md) の第13章にある．
+
 ## ライセンス
 
-MIT License．詳しくは [`LICENSE`](LICENSE) を参照する．
+パッケージ本体（`surikumi.sty`，`surikumi-kaisetsu.sty`，
+`examples/problem-sets/surikumi-mondaishu.sty`，用例，文書）は
+MIT License である．詳しくは [`LICENSE`](LICENSE) を参照する．
+
+`texmf/` に同梱する Σ のフォント `SugakuFourier-Math-Extension` だけは
+別である．これは LPPL で配布される Fourier-GUTenberg の
+`Fourier-Math-Extension` を基礎にした派生フォントなので，LPPL 1.3c に従う．
+派生ファイルは原ファイルと異なる名称を持つ．ライセンス本文は
+[`font-development/sugaku-fourier/LICENSE-LPPL-1.3c.txt`](font-development/sugaku-fourier/LICENSE-LPPL-1.3c.txt)
+に収録し，設計と生成手順は
+[`font-development/sugaku-fourier/README.md`](font-development/sugaku-fourier/README.md)
+にまとめている．フォントを使わない場合は `sigma=document` を指定すれば，
+MIT の部分だけで組める．
